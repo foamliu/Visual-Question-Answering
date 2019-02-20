@@ -7,7 +7,6 @@ im_size = 448
 hidden_size = 512
 
 # Configure training/optimization
-batch_size = 64
 print_freq = 100
 
 train_folder = 'data/train2014'
