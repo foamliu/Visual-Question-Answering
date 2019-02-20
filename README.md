@@ -30,7 +30,7 @@ $ tar -xvzf 5ac9e10bdd572.gz
 
 ## Usage
 
-### Data wraggling
+### Data wrangling
 Extract and pro_processing training data：
 ```bash
 $ python extract.py
