@@ -196,6 +196,7 @@ class AnswerModule(nn.Module):
             preds = F.softmax(self.linear(hidden), dim=-1)
             _, topi = preds.topk(1)
             input = word_embedding(topi)
+            print('topi.size(): ' + str(topi.size()))
             print('input.size(): ' + str(input.size()))
             print('questions.size(): ' + str(questions.size()))
             concat = torch.cat([input, questions], dim=2).squeeze(1)
