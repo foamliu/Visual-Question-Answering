@@ -178,8 +178,8 @@ class AnswerModule(nn.Module):
 
     def forward(self, M, questions, word_embedding):
         '''
-        M.size() -> (#batch, #hidden_size)
-        questions.size() -> (#batch, #hidden_size)
+        M.size() -> (#batch, 1, #hidden_size)
+        questions.size() -> (#batch, 1, #hidden_size)
         '''
         M = self.dropout(M)
         print('M.size(): ' + str(M.size()))
@@ -190,13 +190,14 @@ class AnswerModule(nn.Module):
 
         for t in range(max_target_len):
             '''
-            preds.size() -> (#batch, #vocab_size)
+            preds.size() -> (#batch, 1, #vocab_size)
             topi.size() -> (#batch, 1)
             input.size() -> (#batch, 1, #vocab_size)
             '''
             preds = F.softmax(self.linear(hidden), dim=-1)
             print('preds.size(): ' + str(preds.size()))
             _, topi = preds.topk(1)
+            topi = topi.view((batch_size, 1))
             input = word_embedding(topi)
             print('topi.size(): ' + str(topi.size()))
             print('input.size(): ' + str(input.size()))
