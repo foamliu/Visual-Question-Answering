@@ -20,13 +20,12 @@ def train(dset, model, optim, epoch, logger):
 
     for i, data in enumerate(train_loader):
         optim.zero_grad()
-        contexts, questions, answers, alternatives = data
-        contexts = Variable(contexts.long().cuda())
+        images, questions, answers = data
+        images = Variable(images.float().cuda())
         questions = Variable(questions.long().cuda())
-        alternatives = Variable(alternatives.long().cuda())
-        answers = Variable(answers.cuda())
+        answers = Variable(answers.long().cuda())
 
-        loss, acc = model.get_loss(contexts, questions, alternatives, answers)
+        loss, acc = model.get_loss(images, questions, answers)
         loss.backward()
 
         # Keep track of metrics
@@ -56,13 +55,12 @@ def valid(dset, model, epoch, logger):
     accs = AverageMeter()
 
     for batch_idx, data in enumerate(valid_loader):
-        contexts, questions, answers, alternatives = data
-        contexts = Variable(contexts.long().cuda())
+        images, questions, answers = data
+        images = Variable(images.float().cuda())
         questions = Variable(questions.long().cuda())
-        alternatives = Variable(alternatives.long().cuda())
-        answers = Variable(answers.cuda())
+        answers = Variable(answers.long().cuda())
 
-        loss, acc = model.get_loss(contexts, questions, alternatives, answers)
+        loss, acc = model.get_loss(images, questions, answers)
 
         # Keep track of metrics
         losses.update(loss.item())
