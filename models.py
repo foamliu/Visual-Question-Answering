@@ -169,13 +169,17 @@ class InputModule(nn.Module):
 class AnswerModule(nn.Module):
     def __init__(self, vocab_size, hidden_size):
         super(AnswerModule, self).__init__()
-        self.z = nn.Linear(2 * hidden_size, vocab_size)
-        init.xavier_normal_(self.z.state_dict()['weight'])
         self.dropout = nn.Dropout(0.1)
+        self.gru = nn.GRU(2 * hidden_size, hidden_size)
+        for name, param in self.gru.state_dict().items():
+            if 'weight' in name: init.xavier_normal_(param)
+        self.z = nn.Linear(hidden_size, vocab_size)
+        init.xavier_normal_(self.z.state_dict()['weight'])
 
     def forward(self, M, questions):
         M = self.dropout(M)
         concat = torch.cat([M, questions], dim=2).squeeze(1)
+        x = self.gru
         z = self.z(concat)
         return z
 
