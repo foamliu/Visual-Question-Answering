@@ -41,7 +41,7 @@ class AiChallengerDataset(Dataset):
         self.QA.VOCAB = data['VOCAB']
         self.QA.IVOCAB = data['IVOCAB']
         self.train = data['train']
-        self.valid = data['valid']
+        self.val = data['val']
 
     def set_mode(self, mode):
         self.mode = mode
@@ -49,8 +49,8 @@ class AiChallengerDataset(Dataset):
     def __len__(self):
         if self.mode == 'train':
             return len(self.train[0])
-        elif self.mode == 'valid':
-            return len(self.valid[0])
+        elif self.mode == 'val':
+            return len(self.val[0])
 
     def __getitem__(self, index):
         if self.mode == 'train':
@@ -58,7 +58,7 @@ class AiChallengerDataset(Dataset):
             prefix = 'data/train2014/COCO_train2014_0000'
 
         else:  # self.mode == 'valid':
-            images, questions, answers = self.valid
+            images, questions, answers = self.val
             prefix = 'data/val2014/COCO_val2014_0000'
 
         image_id = int(images[index])
