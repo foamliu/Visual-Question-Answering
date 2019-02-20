@@ -3,7 +3,7 @@ import torch
 from torch.autograd import Variable
 from torch.utils.data.dataloader import DataLoader
 
-from config import print_freq
+from config import hidden_size, print_freq
 from data_gen import AiChallengerDataset, pad_collate
 from models import DMNPlus
 from utils import parse_args, get_logger, AverageMeter, save_checkpoint
@@ -81,7 +81,7 @@ def train_net(args):
     dset = AiChallengerDataset()
     vocab_size = len(dset.QA.VOCAB)
 
-    model = DMNPlus(args.hidden_size, vocab_size, num_hop=3, qa=dset.QA)
+    model = DMNPlus(hidden_size, vocab_size, num_hop=3, qa=dset.QA)
     model.cuda()
 
     start_epoch = 0

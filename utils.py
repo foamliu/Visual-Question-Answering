@@ -8,7 +8,6 @@ import torch
 def parse_args():
     parser = argparse.ArgumentParser(description='train DMN+')
     # general
-    parser.add_argument('--hidden-size', type=int, default=80, help='hidden size')
     parser.add_argument('--batch-size', type=int, default=64, help='batch size')
     parser.add_argument('--end-epoch', type=int, default=256, help='training epoch size.')
     args = parser.parse_args()
