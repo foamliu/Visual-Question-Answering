@@ -2,26 +2,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.init as init
+import torchvision
 from torch.autograd import Variable
+from torchsummary import summary
 
-from config import hidden_size
-
-
-def position_encoding(embedded_sentence):
-    '''
-    embedded_sentence.size() -> (#batch, #sentence, #token, #embedding)
-    l.size() -> (#sentence, #embedding)
-    output.size() -> (#batch, #sentence, #embedding)
-    '''
-    _, _, slen, elen = embedded_sentence.size()
-
-    l = [[(1 - s / (slen - 1)) - (e / (elen - 1)) * (1 - 2 * s / (slen - 1)) for e in range(elen)] for s in range(slen)]
-    l = torch.FloatTensor(l)
-    l = l.unsqueeze(0)  # for #batch
-    l = l.unsqueeze(1)  # for #sen
-    l = l.expand_as(embedded_sentence)
-    weighted = embedded_sentence * Variable(l.cuda())
-    return torch.sum(weighted, dim=2).squeeze(2)  # sum with tokens
+from config import device, hidden_size, im_size
 
 
 class AttentionGRUCell(nn.Module):
@@ -135,7 +120,7 @@ class EpisodicMemory(nn.Module):
 
 
 class QuestionModule(nn.Module):
-    def __init__(self, vocab_size, hidden_size):
+    def __init__(self, hidden_size):
         super(QuestionModule, self).__init__()
         self.gru = nn.GRU(hidden_size, hidden_size, batch_first=True)
 
@@ -152,32 +137,31 @@ class QuestionModule(nn.Module):
 
 
 class InputModule(nn.Module):
-    def __init__(self, vocab_size, hidden_size):
+    def __init__(self, hidden_size):
         super(InputModule, self).__init__()
+        vgg19 = torchvision.models.vgg19(pretrained=False)
+        # Remove linear and pool layers (since we're not doing classification)
+        modules = list(vgg19.children())[:-1]
+        self.cnn = nn.Sequential(*modules)
         self.hidden_size = hidden_size
         self.gru = nn.GRU(hidden_size, hidden_size, bidirectional=True, batch_first=True)
         for name, param in self.gru.state_dict().items():
             if 'weight' in name: init.xavier_normal_(param)
         self.dropout = nn.Dropout(0.1)
 
-    def forward(self, contexts, word_embedding):
+    def forward(self, images):
         '''
-        contexts.size() -> (#batch, #sentence, #token)
-        word_embedding() -> (#batch, #sentence x #token, #embedding)
-        position_encoding() -> (#batch, #sentence, #embedding)
-        facts.size() -> (#batch, #sentence, #hidden = #embedding)
+        images.size() -> (#batch, #channel, #height, #width)
+        facts.size() -> (#batch, 196, #hidden = #embedding)
         '''
-        batch_num, sen_num, token_num = contexts.size()
-
-        contexts = contexts.view(batch_num, -1)
-        contexts = word_embedding(contexts)
-
-        contexts = contexts.view(batch_num, sen_num, token_num, -1)
-        contexts = position_encoding(contexts)
-        contexts = self.dropout(contexts)
+        x = self.cnn(images)
+        batch_num, channel_num, row_num, column_num = x.size()  # (-1, 512, 14, 14)
+        x = x.view(batch_num, channel_num, row_num * column_num)  # (-1, 512, 196)
+        x = x.permute(0, 2, 1)  # (-1, 196, 512)
+        x = self.dropout(x)
 
         h0 = Variable(torch.zeros(2, batch_num, self.hidden_size).cuda())
-        facts, hdn = self.gru(contexts, h0)
+        facts, hdn = self.gru(x, h0)
         facts = facts[:, :, :hidden_size] + facts[:, :, hidden_size:]
         return facts
 
@@ -205,23 +189,22 @@ class DMNPlus(nn.Module):
         init.uniform_(self.word_embedding.state_dict()['weight'], a=-(3 ** 0.5), b=3 ** 0.5)
         self.criterion = nn.CrossEntropyLoss(size_average=False)
 
-        self.input_module = InputModule(vocab_size, hidden_size)
-        self.question_module = QuestionModule(vocab_size, hidden_size)
+        self.input_module = InputModule(hidden_size)
+        self.question_module = QuestionModule(hidden_size)
         self.memory = EpisodicMemory(hidden_size)
         self.answer_module = AnswerModule(vocab_size, hidden_size)
 
-    def forward(self, contexts, questions, alternatives):
+    def forward(self, images, questions):
         '''
         contexts.size() -> (#batch, #sentence, #token) -> (#batch, #sentence, #hidden = #embedding)
         questions.size() -> (#batch, #token) -> (#batch, 1, #hidden)
         '''
-        facts = self.input_module(contexts, self.word_embedding)
+        facts = self.input_module(images)
         questions = self.question_module(questions, self.word_embedding)
         M = questions
         for hop in range(self.num_hop):
             M = self.memory(facts, questions, M)
         preds = self.answer_module(M, questions)
-        preds = torch.gather(preds, 1, alternatives)
         return preds
 
     def interpret_indexed_tensor(self, var):
@@ -242,8 +225,8 @@ class DMNPlus(nn.Module):
                 s = self.qa.IVOCAB[token.data[0]]
                 print('{}th of batch, {}'.format(n, s))
 
-    def get_loss(self, contexts, questions, alternatives, targets):
-        output = self.forward(contexts, questions, alternatives)
+    def get_loss(self, images, questions, targets):
+        output = self.forward(images, questions)
         loss = self.criterion(output, targets)
         reg_loss = 0
         for param in self.parameters():
@@ -253,3 +236,11 @@ class DMNPlus(nn.Module):
         corrects = (pred_ids.data == targets.data)
         acc = torch.mean(corrects.float())
         return loss + reg_loss, acc
+
+
+if __name__ == '__main__':
+    vocab_size = 15270
+    model = DMNPlus(hidden_size, vocab_size, num_hop=3)
+    # model = InputModule(hidden_size).to(device)
+    model = model.to(device)
+    summary(model, input_size=[(3, im_size, im_size), (10, )])

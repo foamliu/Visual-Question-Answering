@@ -2,7 +2,7 @@
 
 ![apm](https://img.shields.io/apm/l/vim-mode.svg)
 
-In VQA, an algorithm needs to answer text-based questions about images. This is an PyTorch implementation of DMN+ model on MSCOCO VQA dataset.
+This is an PyTorch implementation of DMN+ model on MSCOCO VQA dataset. In VQA, an algorithm needs to answer text-based questions about images. 
 
 ## Dependency
 - Python 3.6
@@ -48,3 +48,7 @@ Download pretrained [model](https://github.com/foamliu/Reading-Comprehension/rel
 ```bash
 $ python demo.py
 ```
+
+
+## Reference
+1. [Dynamic Memory Network for Visual and Textual Question Answering](https://arxiv.org/abs/1603.01417).

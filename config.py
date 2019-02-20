@@ -10,7 +10,7 @@ print_freq = 100
 pickle_file = 'data/data.pkl'
 
 # Configure models
-hidden_size = 80
+hidden_size = 512
 
 train_folder = 'data/train2014'
 valid_folder = 'data/val2014'
