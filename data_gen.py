@@ -57,7 +57,7 @@ class AiChallengerDataset(Dataset):
             images, questions, answers = self.train
             prefix = 'data/train2014/COCO_train2014_0000'
 
-        else:  # self.mode == 'valid':
+        else:  # self.mode == 'val':
             images, questions, answers = self.val
             prefix = 'data/val2014/COCO_val2014_0000'
 
@@ -65,7 +65,9 @@ class AiChallengerDataset(Dataset):
         image_id = '{:08d}'.format(image_id)
         filename = prefix + image_id + '.jpg'
         img = cv.imread(filename)
+        img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
         img = cv.resize(img, (im_size, im_size))
+        img = img.transpose(2, 0, 1)
         img = (img - 127.5) / 128
 
         question = questions[index]
