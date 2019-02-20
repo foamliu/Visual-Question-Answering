@@ -9,12 +9,21 @@ In VQA, an algorithm needs to answer text-based questions about images.
 - PyTorch 1.0
 
 ## Dataset
-1. 82,783 training images, 40,504 validation images and 81,434 testing images (images are obtained from [MS COCO website] (https://visualqa.org/download.html))
-2. 443,757 questions for training, 214,354 questions for validation and 447,793 questions for testing
-3. 4,437,570 answers for training and 2,143,540 answers for validation (10 per question)
+1. MSCOCO: images are obtained from [MS COCO website](https://visualqa.org/download.html). 
+    - 82,783 training images, 
+    - 40,504 validation images and, 
+    - 81,434 testing images.
 
+2. Baidu: chinese questions and answers are obtained from [Baidu Research](http://idl.baidu.com/FM-IQA.html).
+    - 164,735 training questions and answers, 
+    - 75,206 validation questions and answers.
+
+
+Simply create a "data" folder then run:
 ```bash
-wget http://images.cocodataset.org/zips/train2014.zip
-wget http://images.cocodataset.org/zips/val2014.zip
-wget http://images.cocodataset.org/zips/test2015.zip
+$ wget http://images.cocodataset.org/zips/train2014.zip
+$ wget http://images.cocodataset.org/zips/val2014.zip
+$ wget http://images.cocodataset.org/zips/test2015.zip
+$ wget http://research.baidu.com/Public/uploads/5ac9e10bdd572.gz
+$ tar -xvzf 5ac9e10bdd572.gz
 ```
