@@ -81,5 +81,6 @@ if __name__ == '__main__':
     train_loader = DataLoader(dset_train, batch_size=2, shuffle=True, collate_fn=pad_collate)
     for batch_idx, data in enumerate(train_loader):
         images, questions, answers = data
+        print('answers.size(): ' + str(answers.size()))
         break
     print(len(dset_train.QA.VOCAB))
