@@ -197,6 +197,7 @@ class AnswerModule(nn.Module):
             _, topi = preds.topk(1)
             input = word_embedding(topi)
             print('input.size(): ' + str(input.size()))
+            print('questions.size(): ' + str(questions.size()))
             concat = torch.cat([input, questions], dim=2).squeeze(1)
             print('concat.size(): ' + str(concat.size()))
             _, hidden = self.gru(concat, hidden)
