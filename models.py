@@ -202,7 +202,7 @@ class AnswerModule(nn.Module):
             print('topi.size(): ' + str(topi.size()))
             print('input.size(): ' + str(input.size()))
             print('questions.size(): ' + str(questions.size()))
-            concat = torch.cat([input, questions], dim=2).squeeze(1)
+            concat = torch.cat([input, questions], dim=2)
             print('concat.size(): ' + str(concat.size()))
             _, hidden = self.gru(concat, hidden)
             print('hidden.size(): ' + str(hidden.size()))
