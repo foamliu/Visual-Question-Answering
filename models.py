@@ -6,7 +6,7 @@ import torchvision
 from torch.autograd import Variable
 from torchsummary import summary
 
-from config import device, hidden_size, im_size
+from config import device, hidden_size, batch_size, max_target_len
 
 
 class AttentionGRUCell(nn.Module):
@@ -170,18 +170,40 @@ class AnswerModule(nn.Module):
     def __init__(self, vocab_size, hidden_size):
         super(AnswerModule, self).__init__()
         self.dropout = nn.Dropout(0.1)
-        self.gru = nn.GRU(2 * hidden_size, hidden_size)
+        self.gru = nn.GRU(2 * hidden_size, hidden_size, batch_first=True)
         for name, param in self.gru.state_dict().items():
             if 'weight' in name: init.xavier_normal_(param)
-        self.z = nn.Linear(hidden_size, vocab_size)
-        init.xavier_normal_(self.z.state_dict()['weight'])
+        self.linear = nn.Linear(hidden_size, vocab_size)
+        init.xavier_normal_(self.linear.state_dict()['weight'])
 
-    def forward(self, M, questions):
+    def forward(self, M, questions, word_embedding):
+        '''
+        M.size() -> (#batch, #hidden_size)
+        questions.size() -> (#batch, #hidden_size)
+        '''
         M = self.dropout(M)
-        concat = torch.cat([M, questions], dim=2).squeeze(1)
-        x = self.gru
-        z = self.z(concat)
-        return z
+        hidden = M
+        batch_size = M.size()[0]
+
+        answer = torch.zeros([batch_size, max_target_len], dtype=torch.long)
+
+        for t in range(max_target_len):
+            '''
+            preds.size() -> (#batch, #vocab_size)
+            topi.size() -> (#batch, 1)
+            input.size() -> (#batch, 1, #vocab_size)
+            '''
+            preds = F.softmax(self.linear(hidden), dim=-1)
+            _, topi = preds.topk(1)
+            input = word_embedding(topi)
+            print('input.size(): ' + str(input.size()))
+            concat = torch.cat([input, questions], dim=2).squeeze(1)
+            print('concat.size(): ' + str(concat.size()))
+            _, hidden = self.gru(concat, hidden)
+            print('hidden.size(): ' + str(hidden.size()))
+            answer[t] = topi
+
+        return answer
 
 
 class DMNPlus(nn.Module):
@@ -208,7 +230,7 @@ class DMNPlus(nn.Module):
         M = questions
         for hop in range(self.num_hop):
             M = self.memory(facts, questions, M)
-        preds = self.answer_module(M, questions)
+        preds = self.answer_module(M, questions, self.word_embedding)
         return preds
 
     def interpret_indexed_tensor(self, var):
@@ -244,7 +266,8 @@ class DMNPlus(nn.Module):
 
 if __name__ == '__main__':
     vocab_size = 15270
-    model = DMNPlus(hidden_size, vocab_size, num_hop=3)
+    # model = DMNPlus(hidden_size, vocab_size, num_hop=3)
     # model = InputModule(hidden_size).to(device)
+    model = AnswerModule(vocab_size, hidden_size).to(device)
     model = model.to(device)
-    summary(model, input_size=[(3, im_size, im_size), (10, )])
+    summary(model, input_size=[(hidden_size,), (hidden_size,), (vocab_size, )])
