@@ -24,6 +24,7 @@ Simply create a "data" folder then run:
 $ wget http://images.cocodataset.org/zips/train2014.zip
 $ wget http://images.cocodataset.org/zips/val2014.zip
 $ wget http://images.cocodataset.org/zips/test2015.zip
+
 $ wget http://research.baidu.com/Public/uploads/5ac9e10bdd572.gz
 $ tar -xvzf 5ac9e10bdd572.gz
 ```
