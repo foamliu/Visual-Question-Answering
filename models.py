@@ -206,7 +206,7 @@ class AnswerModule(nn.Module):
             print('concat.size(): ' + str(concat.size()))
             _, hidden = self.gru(concat, hidden)
             print('hidden.size(): ' + str(hidden.size()))
-            answer[t] = topi
+            answer[:, t] = [topi[i][0] for i in range(batch_size)]
 
         return answer
 
