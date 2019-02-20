@@ -15,3 +15,4 @@ hidden_size = 80
 train_folder = 'data/train2014'
 valid_folder = 'data/val2014'
 test_folder = 'data/test2015'
+qa_json = 'data/FM-CH-QA.json'
