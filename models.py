@@ -182,6 +182,7 @@ class AnswerModule(nn.Module):
         questions.size() -> (#batch, #hidden_size)
         '''
         M = self.dropout(M)
+        print('M.size(): ' + str(M.size()))
         hidden = M
         batch_size = M.size()[0]
 
@@ -194,6 +195,7 @@ class AnswerModule(nn.Module):
             input.size() -> (#batch, 1, #vocab_size)
             '''
             preds = F.softmax(self.linear(hidden), dim=-1)
+            print('preds.size(): ' + str(preds.size()))
             _, topi = preds.topk(1)
             input = word_embedding(topi)
             print('topi.size(): ' + str(topi.size()))
