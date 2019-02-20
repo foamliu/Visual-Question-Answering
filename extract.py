@@ -1,10 +1,8 @@
-import zipfile
 import os
-from utils import ensure_folder
+import zipfile
 
-train_folder = 'data/ai_challenger_oqmrc2018_trainingset_20180816'
-valid_folder = 'data/ai_challenger_oqmrc2018_validationset_20180816'
-test_a_folder = 'data/ai_challenger_oqmrc2018_testa_20180816'
+from config import train_folder, valid_folder, test_folder
+from utils import ensure_folder
 
 
 def extract(folder):
@@ -23,6 +21,5 @@ if __name__ == '__main__':
     if not os.path.isdir(valid_folder):
         extract(valid_folder)
 
-    if not os.path.isdir(test_a_folder):
-        extract(test_a_folder)
-
+    if not os.path.isdir(test_folder):
+        extract(test_folder)
