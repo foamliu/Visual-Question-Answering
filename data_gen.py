@@ -1,11 +1,12 @@
 import pickle
 
+import cv2 as cv
 import numpy as np
 from torch.utils.data.dataloader import DataLoader
 from torch.utils.data.dataloader import default_collate
 from torch.utils.data.dataset import Dataset
 
-from config import pickle_file
+from config import im_size, pickle_file
 
 
 class adict(dict):
@@ -15,29 +16,18 @@ class adict(dict):
 
 
 def pad_collate(batch):
-    max_context_sen_len = float('-inf')
-    max_context_len = float('-inf')
     max_question_len = float('-inf')
+    max_answer_len = float('-inf')
     for elem in batch:
-        context, question, _, _ = elem
-        max_context_len = max_context_len if max_context_len > len(context) else len(context)
+        _, question, answer = elem
         max_question_len = max_question_len if max_question_len > len(question) else len(question)
-        for sen in context:
-            max_context_sen_len = max_context_sen_len if max_context_sen_len > len(sen) else len(sen)
-    max_context_len = min(max_context_len, 70)
+        max_answer_len = max_answer_len if max_answer_len > len(answer) else len(answer)
+
     for i, elem in enumerate(batch):
-        _context, question, answer, alternative = elem
-        _context = _context[-max_context_len:]
-        context = np.zeros((max_context_len, max_context_sen_len))
-        for j, sen in enumerate(_context):
-            context[j] = np.pad(sen, (0, max_context_sen_len - len(sen)), 'constant', constant_values=0)
+        image, question, answer = elem
         question = np.pad(question, (0, max_question_len - len(question)), 'constant', constant_values=0)
-        alternative = np.array(alternative)
-        batch[i] = (context, question, answer, alternative)
-        # print('context.shape: ' + str(context.shape))
-        # print('question.shape: ' + str(question.shape))
-        # print('alternative.shape: ' + str(alternative.shape))
-        # print('answer: ' + str(answer))
+        answer = np.pad(answer, (0, max_answer_len - len(answer)), 'constant', constant_values=0)
+        batch[i] = (image, question, answer)
     return default_collate(batch)
 
 
@@ -52,7 +42,6 @@ class AiChallengerDataset(Dataset):
         self.QA.IVOCAB = data['IVOCAB']
         self.train = data['train']
         self.valid = data['valid']
-        self.test = data['test']
 
     def set_mode(self, mode):
         self.mode = mode
@@ -62,27 +51,33 @@ class AiChallengerDataset(Dataset):
             return len(self.train[0])
         elif self.mode == 'valid':
             return len(self.valid[0])
-        elif self.mode == 'test':
-            return len(self.test[0])
 
     def __getitem__(self, index):
         if self.mode == 'train':
-            contexts, questions, answers, alternatives = self.train
-        elif self.mode == 'valid':
-            contexts, questions, answers, alternatives = self.valid
-        elif self.mode == 'test':
-            contexts, questions, answers, alternatives = self.test
-        return contexts[index], questions[index], answers[index], alternatives[index]
+            images, questions, answers = self.train
+            prefix = 'data/train2014/COCO_train2014_0000'
+
+        else:  # self.mode == 'valid':
+            images, questions, answers = self.valid
+            prefix = 'data/val2014/COCO_val2014_0000'
+
+        image_id = int(images[index])
+        image_id = '{:08d}'.format(image_id)
+        filename = prefix + image_id + '.jpg'
+        img = cv.imread(filename)
+        img = cv.resize(img, (im_size, im_size))
+        img = (img - 127.5) / 128
+
+        question = questions[index]
+        answer = answers[index]
+
+        return img, question, answer
 
 
 if __name__ == '__main__':
     dset_train = AiChallengerDataset()
     train_loader = DataLoader(dset_train, batch_size=2, shuffle=True, collate_fn=pad_collate)
     for batch_idx, data in enumerate(train_loader):
-        contexts, questions, answers, alternatives = data
-        print('type(contexts): ' + str(type(contexts)))
-        print('type(questions): ' + str(type(questions)))
-        print('type(alternatives): ' + str(type(alternatives)))
-        print('type(answers): ' + str(type(answers)))
+        images, questions, answers = data
         break
     print(len(dset_train.QA.VOCAB))
