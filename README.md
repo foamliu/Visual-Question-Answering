@@ -2,6 +2,8 @@
 
 ![apm](https://img.shields.io/apm/l/vim-mode.svg)
 
+In VQA, an algorithm needs to answer text-based questions about images.
+
 ## Dependency
 - Python 3.6
 - PyTorch 1.0
