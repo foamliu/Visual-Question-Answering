@@ -69,6 +69,7 @@ def maskNLLLoss(outputs, targets):
     '''
     outputs.size() -> (#batch, #max_target_len, #vocab_size)
     targets.size() -> (#batch, #max_target_len)
+    mask.size() -> (#batch, #max_target_len)
     '''
     batch_size, max_target_len = targets.size()
 
@@ -80,16 +81,13 @@ def maskNLLLoss(outputs, targets):
                 break
             mask[i, t] = 0
 
-    print('outputs.device: ' + str(outputs.device))
-    print('targets.device: ' + str(targets.device))
-    print('mask.device: ' + str(mask.device))
-
     loss = 0
     n_totals = 0
     for t in range(0, max_target_len):
-        nTotal = mask.sum()
-        crossEntropy = -torch.log(torch.gather(input=outputs, dim=2, index=targets.view(batch_size, max_target_len, 1)))
-        mask_loss = crossEntropy.masked_select(mask).mean()
+        nTotal = mask[:, t].sum()
+        crossEntropy = -torch.log(torch.gather(input=outputs, dim=2, index=targets[:, t, :].view(-1, 1)))
+        print('crossEntropy.size(): ' + str(crossEntropy.size()))
+        mask_loss = crossEntropy.masked_select(mask[:, t]).mean()
         mask_loss = mask_loss.to(device)
         loss += mask_loss
         n_totals += nTotal
