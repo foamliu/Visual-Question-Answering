@@ -73,10 +73,9 @@ def maskNLLLoss(outputs, targets):
     mask = torch.ones_like(targets)
     for i in range(batch_size):
         for t in range(max_target_len, 0, -1):
-            if targets[i, t] == 0:
-                mask[i, t] = 0
-            else:
+            if targets[i, t] == 1:
                 break
+            mask[i, t] = 0
 
     loss = 0
     n_totals = 0
