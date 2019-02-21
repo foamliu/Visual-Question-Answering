@@ -86,7 +86,6 @@ def maskNLLLoss(outputs, targets):
     for t in range(0, max_target_len):
         nTotal = mask[:, t].sum()
         crossEntropy = -torch.log(torch.gather(input=outputs[:, t, :], dim=1, index=targets[:, t].view(-1, 1)))
-        print('crossEntropy.size(): ' + str(crossEntropy.size()))
         mask_loss = crossEntropy.masked_select(mask[:, t]).mean()
         mask_loss = mask_loss.to(device)
         loss += mask_loss

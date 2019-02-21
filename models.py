@@ -266,7 +266,7 @@ class DMNPlus(nn.Module):
             reg_loss += 0.001 * torch.sum(param * param)
         preds = F.softmax(outputs, dim=-1)
         _, pred_ids = torch.max(preds, dim=1)
-        corrects = (outputs.data == targets.data)
+        corrects = (pred_ids.data == targets.data)
         acc = torch.mean(corrects.float())
         return loss + reg_loss, acc
 
