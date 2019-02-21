@@ -203,7 +203,7 @@ class AnswerModule(nn.Module):
             input = word_embedding(topi)
             concat = torch.cat([input, questions], dim=2)
             _, hidden = self.gru(concat, hidden)
-            answer[:, t, :] = preds
+            answer[:, t, :] = preds.squeeze(1)
 
         return answer
 
