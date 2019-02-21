@@ -204,6 +204,7 @@ class AnswerModule(nn.Module):
             print('questions.size(): ' + str(questions.size()))
             concat = torch.cat([input, questions], dim=2)
             print('concat.size(): ' + str(concat.size()))
+            hidden = hidden.permute(1, 0, 2)
             _, hidden = self.gru(concat, hidden)
             print('hidden.size(): ' + str(hidden.size()))
             answer[:, t] = [topi[i][0] for i in range(batch_size)]
