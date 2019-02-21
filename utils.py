@@ -72,7 +72,7 @@ def maskNLLLoss(outputs, targets):
     '''
     batch_size, max_target_len = targets.size()
 
-    mask = torch.ones_like(targets)
+    mask = torch.ones_like(targets, device=device)
     for i in range(batch_size):
         for j in range(max_target_len, 0, -1):
             t = j - 1
