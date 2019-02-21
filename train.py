@@ -7,7 +7,7 @@ from torch.utils.data.dataloader import DataLoader
 from config import device, hidden_size, print_freq
 from data_gen import AiChallengerDataset, pad_collate
 from models import DMNPlus
-from utils import parse_args, get_logger, AverageMeter, save_checkpoint
+from utils import parse_args, get_logger, AverageMeter, save_checkpoint, get_loss
 
 
 def train(dset, model, optim, epoch, logger):
@@ -26,7 +26,7 @@ def train(dset, model, optim, epoch, logger):
         questions = Variable(questions.long().to(device))
         answers = Variable(answers.long().to(device))
 
-        loss, acc = model.get_loss(images, questions, answers)
+        loss, acc = get_loss(model, images, questions, answers)
         loss.backward()
 
         # Keep track of metrics
@@ -61,7 +61,7 @@ def valid(dset, model, epoch, logger):
         questions = Variable(questions.long().to(device))
         answers = Variable(answers.long().to(device))
 
-        loss, acc = model.get_loss(images, questions, answers)
+        loss, acc = get_loss(model, images, questions, answers)
 
         # Keep track of metrics
         losses.update(loss.item())

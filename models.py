@@ -7,7 +7,6 @@ from torch.autograd import Variable
 from torchsummary import summary
 
 from config import device, hidden_size
-from utils import maskNLLLoss
 
 
 class AttentionGRUCell(nn.Module):
@@ -252,21 +251,6 @@ class DMNPlus(nn.Module):
             for n, token in enumerate(var):
                 s = self.qa.IVOCAB[token.data[0]]
                 print('{}th of batch, {}'.format(n, s))
-
-    def get_loss(self, images, questions, targets):
-        max_target_len = targets.size()[1]
-        outputs = self.forward(images, questions, max_target_len)
-
-        loss, n_totals = maskNLLLoss(outputs, targets)
-        reg_loss = 0
-        for param in self.parameters():
-            reg_loss += 0.001 * torch.sum(param * param)
-        preds = F.softmax(outputs, dim=-1)
-        _, pred_ids = torch.max(preds, dim=-1)
-
-        corrects = (pred_ids.data == targets.data)
-        acc = torch.mean(corrects.float())
-        return loss + reg_loss, acc
 
 
 if __name__ == '__main__':

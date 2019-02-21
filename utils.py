@@ -3,6 +3,7 @@ import logging
 import os
 
 import torch
+import torch.nn.functional as F
 
 from config import device
 
@@ -93,3 +94,19 @@ def maskNLLLoss(outputs, targets):
         n_totals += nTotal
 
     return loss, n_totals
+
+
+def get_loss(model, images, questions, targets):
+    max_target_len = targets.size()[1]
+    outputs = model.forward(images, questions, max_target_len)
+
+    loss, n_totals = maskNLLLoss(outputs, targets)
+    reg_loss = 0
+    for param in model.parameters():
+        reg_loss += 0.001 * torch.sum(param * param)
+    preds = F.softmax(outputs, dim=-1)
+    _, pred_ids = torch.max(preds, dim=-1)
+
+    corrects = (pred_ids.data == targets.data)
+    acc = torch.mean(corrects.float())
+    return loss + reg_loss, acc
