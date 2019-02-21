@@ -80,6 +80,10 @@ def maskNLLLoss(outputs, targets):
                 break
             mask[i, t] = 0
 
+    print('outputs.device: ' + str(outputs.device))
+    print('targets.device: ' + str(targets.device))
+    print('mask.device: ' + str(mask.device))
+
     loss = 0
     n_totals = 0
     for t in range(0, max_target_len):
