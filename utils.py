@@ -66,9 +66,11 @@ def save_checkpoint(epoch, epochs_since_improvement, model, optimizer, acc, is_b
 
 
 def maskNLLLoss(outputs, targets):
+    print('outputs.size(): ' + str(outputs.size()))
+    print('targets.size(): ' + str(targets.size()))
     batch_size, max_target_len = targets.size()
 
-    mask = torch.ones((batch_size, max_target_len), dtype=torch.long, device=device)
+    mask = torch.ones_like(targets)
     for i in range(batch_size):
         for t in range(max_target_len, 0, -1):
             if targets[i, t] == 0:
