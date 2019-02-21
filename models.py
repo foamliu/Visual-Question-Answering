@@ -257,9 +257,6 @@ class DMNPlus(nn.Module):
         max_target_len = targets.size()[1]
         outputs = self.forward(images, questions, max_target_len)
 
-        print('outputs.size(): ' + str(outputs.size()))
-        print('targets.size(): ' + str(targets.size()))
-        # loss = self.criterion(outputs, targets)
         loss, n_totals = maskNLLLoss(outputs, targets)
         reg_loss = 0
         for param in self.parameters():
