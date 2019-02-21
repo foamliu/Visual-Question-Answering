@@ -190,23 +190,18 @@ class AnswerModule(nn.Module):
 
         for t in range(max_target_len):
             '''
-            hiddle.size -> (1, #batch, #hidden_size)
+            hidden.size -> (1, #batch, #hidden_size)
             preds.size() -> (#batch, 1, #vocab_size)
             topi.size() -> (#batch, 1)
-            input.size() -> (#batch, 1, #vocab_size)
+            input.size() -> (#batch, 1, #hidden_size)
+            concat.size() -> (#batch, 1, #hidden_size * 2)
             '''
             preds = F.softmax(self.linear(hidden.permute(1, 0, 2)), dim=-1)
-            print('preds.size(): ' + str(preds.size()))
             _, topi = preds.topk(1)
             topi = topi.view((batch_size, 1))
             input = word_embedding(topi)
-            print('topi.size(): ' + str(topi.size()))
-            print('input.size(): ' + str(input.size()))
-            print('questions.size(): ' + str(questions.size()))
             concat = torch.cat([input, questions], dim=2)
-            print('concat.size(): ' + str(concat.size()))
             _, hidden = self.gru(concat, hidden)
-            print('hidden.size(): ' + str(hidden.size()))
             answer[:, t] = torch.LongTensor([topi[i][0] for i in range(batch_size)])
 
         return answer
@@ -258,12 +253,14 @@ class DMNPlus(nn.Module):
                 print('{}th of batch, {}'.format(n, s))
 
     def get_loss(self, images, questions, targets):
-        output = self.forward(images, questions)
-        loss = self.criterion(output, targets)
+        outputs = self.forward(images, questions)
+        print('outputs.size(): ' + str(outputs.size()))
+        print('targets.size(): ' + str(targets.size()))
+        loss = self.criterion(outputs, targets)
         reg_loss = 0
         for param in self.parameters():
             reg_loss += 0.001 * torch.sum(param * param)
-        preds = F.softmax(output, dim=-1)
+        preds = F.softmax(outputs, dim=-1)
         _, pred_ids = torch.max(preds, dim=1)
         corrects = (pred_ids.data == targets.data)
         acc = torch.mean(corrects.float())
