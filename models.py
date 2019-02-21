@@ -170,6 +170,7 @@ class InputModule(nn.Module):
 class AnswerModule(nn.Module):
     def __init__(self, vocab_size, hidden_size):
         super(AnswerModule, self).__init__()
+        self.vocab_size = vocab_size
         self.dropout = nn.Dropout(0.1)
         self.gru = nn.GRU(2 * hidden_size, hidden_size, batch_first=True)
         for name, param in self.gru.state_dict().items():
@@ -186,7 +187,7 @@ class AnswerModule(nn.Module):
         hidden = M.permute(1, 0, 2)
         batch_size = M.size()[0]
 
-        answer = torch.zeros([batch_size, max_target_len, vocab_size], dtype=torch.long)
+        answer = torch.zeros([batch_size, max_target_len, self.vocab_size], dtype=torch.long)
 
         for t in range(max_target_len):
             '''
@@ -259,10 +260,12 @@ class DMNPlus(nn.Module):
         print('outputs.size(): ' + str(outputs.size()))
         print('targets.size(): ' + str(targets.size()))
         # loss = self.criterion(outputs, targets)
-        loss = maskNLLLoss(outputs, targets)
+        loss, n_totals = maskNLLLoss(outputs, targets)
         reg_loss = 0
         for param in self.parameters():
             reg_loss += 0.001 * torch.sum(param * param)
+        preds = F.softmax(outputs, dim=-1)
+        _, pred_ids = torch.max(preds, dim=1)
         corrects = (outputs.data == targets.data)
         acc = torch.mean(corrects.float())
         return loss + reg_loss, acc
