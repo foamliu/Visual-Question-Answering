@@ -186,7 +186,7 @@ class AnswerModule(nn.Module):
         hidden = M.permute(1, 0, 2)
         batch_size = M.size()[0]
 
-        answer = torch.zeros([batch_size, max_target_len], dtype=torch.long)
+        answer = torch.zeros([batch_size, max_target_len, vocab_size], dtype=torch.long)
 
         for t in range(max_target_len):
             '''
@@ -202,7 +202,7 @@ class AnswerModule(nn.Module):
             input = word_embedding(topi)
             concat = torch.cat([input, questions], dim=2)
             _, hidden = self.gru(concat, hidden)
-            answer[:, t] = torch.LongTensor([topi[i][0] for i in range(batch_size)])
+            answer[:, t, :] = preds
 
         return answer
 

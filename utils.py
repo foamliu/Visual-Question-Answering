@@ -64,15 +64,17 @@ def save_checkpoint(epoch, epochs_since_improvement, model, optimizer, acc, is_b
     if is_best:
         torch.save(state, 'BEST_checkpoint.tar')
 
-
-# Since we are dealing with batches of padded sequences, we cannot simply consider all elements of
-# the tensor when calculating loss. We define maskNLLLoss to calculate our loss based on our
-# decoder’s output tensor, the target tensor, and a binary mask tensor describing the padding of the
-# target tensor. This loss function calculates the average negative log likelihood of the elements that
-# correspond to a 1 in the mask tensor.
-def maskNLLLoss(inp, target):
+def maskNLLLoss(outputs, targets):
+    batch_size, max_target_len = targets.size()
+    mask = torch.ones((batch_size, max_target_len), dtype=torch.long, device=device)
+    for i in range(batch_size):
+        for j in range(max_target_len, 0, -1):
+            if targets[i, j] == 0:
+                mask[i, j] = 0
+            else:
+                break
     nTotal = mask.sum()
-    crossEntropy = -torch.log(torch.gather(input=inp, dim=1, index=target.view(-1, 1)))
+    crossEntropy = -torch.log(torch.gather(input=outputs, dim=1, index=target.view(-1, 1)))
     loss = crossEntropy.masked_select(mask).mean()
     loss = loss.to(device)
     return loss, nTotal.item()
