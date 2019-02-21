@@ -66,8 +66,10 @@ def save_checkpoint(epoch, epochs_since_improvement, model, optimizer, acc, is_b
 
 
 def maskNLLLoss(outputs, targets):
-    print('outputs.size(): ' + str(outputs.size()))
-    print('targets.size(): ' + str(targets.size()))
+    '''
+    outputs.size() -> (#batch, #max_target_len, #vocab_size)
+    targets.size() -> (#batch, #max_target_len)
+    '''
     batch_size, max_target_len = targets.size()
 
     mask = torch.ones_like(targets)
