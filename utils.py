@@ -4,6 +4,8 @@ import os
 
 import torch
 
+from config import device
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description='train DMN+')
@@ -61,3 +63,16 @@ def save_checkpoint(epoch, epochs_since_improvement, model, optimizer, acc, is_b
     # If this checkpoint is the best so far, store a copy so it doesn't get overwritten by a worse checkpoint
     if is_best:
         torch.save(state, 'BEST_checkpoint.tar')
+
+
+# Since we are dealing with batches of padded sequences, we cannot simply consider all elements of
+# the tensor when calculating loss. We define maskNLLLoss to calculate our loss based on our
+# decoder’s output tensor, the target tensor, and a binary mask tensor describing the padding of the
+# target tensor. This loss function calculates the average negative log likelihood of the elements that
+# correspond to a 1 in the mask tensor.
+def maskNLLLoss(inp, target):
+    nTotal = mask.sum()
+    crossEntropy = -torch.log(torch.gather(input=inp, dim=1, index=target.view(-1, 1)))
+    loss = crossEntropy.masked_select(mask).mean()
+    loss = loss.to(device)
+    return loss, nTotal.item()

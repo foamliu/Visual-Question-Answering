@@ -5,7 +5,6 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # Configure models
 im_size = 448
 hidden_size = 512
-max_target_len = 10
 
 # Configure training/optimization
 print_freq = 100

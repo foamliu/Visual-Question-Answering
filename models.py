@@ -6,7 +6,8 @@ import torchvision
 from torch.autograd import Variable
 from torchsummary import summary
 
-from config import device, hidden_size, max_target_len
+from config import device, hidden_size
+from utils import maskNLLLoss
 
 
 class AttentionGRUCell(nn.Module):
@@ -176,7 +177,7 @@ class AnswerModule(nn.Module):
         self.linear = nn.Linear(hidden_size, vocab_size)
         init.xavier_normal_(self.linear.state_dict()['weight'])
 
-    def forward(self, M, questions, word_embedding):
+    def forward(self, M, questions, word_embedding, max_target_len):
         '''
         M.size() -> (#batch, 1, #hidden_size)
         questions.size() -> (#batch, 1, #hidden_size)
@@ -220,7 +221,7 @@ class DMNPlus(nn.Module):
         self.memory = EpisodicMemory(hidden_size)
         self.answer_module = AnswerModule(vocab_size, hidden_size)
 
-    def forward(self, images, questions):
+    def forward(self, images, questions, max_target_len):
         '''
         contexts.size() -> (#batch, #sentence, #token) -> (#batch, #sentence, #hidden = #embedding)
         questions.size() -> (#batch, #token) -> (#batch, 1, #hidden)
@@ -230,7 +231,7 @@ class DMNPlus(nn.Module):
         M = questions
         for hop in range(self.num_hop):
             M = self.memory(facts, questions, M)
-        preds = self.answer_module(M, questions, self.word_embedding)
+        preds = self.answer_module(M, questions, self.word_embedding, max_target_len)
         return preds
 
     def interpret_indexed_tensor(self, var):
@@ -252,16 +253,17 @@ class DMNPlus(nn.Module):
                 print('{}th of batch, {}'.format(n, s))
 
     def get_loss(self, images, questions, targets):
-        outputs = self.forward(images, questions)
+        max_target_len = targets.size()[1]
+        outputs = self.forward(images, questions, max_target_len)
+
         print('outputs.size(): ' + str(outputs.size()))
         print('targets.size(): ' + str(targets.size()))
-        loss = self.criterion(outputs, targets)
+        # loss = self.criterion(outputs, targets)
+        loss = maskNLLLoss(outputs, targets)
         reg_loss = 0
         for param in self.parameters():
             reg_loss += 0.001 * torch.sum(param * param)
-        preds = F.softmax(outputs, dim=-1)
-        _, pred_ids = torch.max(preds, dim=1)
-        corrects = (pred_ids.data == targets.data)
+        corrects = (outputs.data == targets.data)
         acc = torch.mean(corrects.float())
         return loss + reg_loss, acc
 
