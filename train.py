@@ -3,7 +3,7 @@ import torch
 from torch.autograd import Variable
 from torch.utils.data.dataloader import DataLoader
 
-from config import hidden_size, print_freq
+from config import device, hidden_size, print_freq
 from data_gen import AiChallengerDataset, pad_collate
 from models import DMNPlus
 from utils import parse_args, get_logger, AverageMeter, save_checkpoint
@@ -21,9 +21,9 @@ def train(dset, model, optim, epoch, logger):
     for i, data in enumerate(train_loader):
         optim.zero_grad()
         images, questions, answers = data
-        images = Variable(images.float().cuda())
-        questions = Variable(questions.long().cuda())
-        answers = Variable(answers.long().cuda())
+        images = Variable(images.float().to(device))
+        questions = Variable(questions.long().to(device))
+        answers = Variable(answers.long().to(device))
 
         loss, acc = model.get_loss(images, questions, answers)
         loss.backward()
@@ -56,9 +56,9 @@ def valid(dset, model, epoch, logger):
 
     for batch_idx, data in enumerate(valid_loader):
         images, questions, answers = data
-        images = Variable(images.float().cuda())
-        questions = Variable(questions.long().cuda())
-        answers = Variable(answers.long().cuda())
+        images = Variable(images.float().to(device))
+        questions = Variable(questions.long().to(device))
+        answers = Variable(answers.long().to(device))
 
         loss, acc = model.get_loss(images, questions, answers)
 
@@ -80,7 +80,7 @@ def train_net(args):
     vocab_size = len(dset.QA.VOCAB)
 
     model = DMNPlus(hidden_size, vocab_size, num_hop=3, qa=dset.QA)
-    model.cuda()
+    model.to(device)
 
     start_epoch = 0
     best_acc = 0

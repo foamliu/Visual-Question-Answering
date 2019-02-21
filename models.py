@@ -187,7 +187,7 @@ class AnswerModule(nn.Module):
         hidden = M.permute(1, 0, 2)
         batch_size = M.size()[0]
 
-        answer = torch.zeros([batch_size, max_target_len, self.vocab_size], dtype=torch.long)
+        answer = torch.zeros([batch_size, max_target_len, self.vocab_size], dtype=torch.float, device=device)
 
         for t in range(max_target_len):
             '''
