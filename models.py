@@ -6,7 +6,7 @@ import torchvision
 from torch.autograd import Variable
 from torchsummary import summary
 
-from config import device, hidden_size, batch_size, max_target_len
+from config import device, hidden_size, max_target_len
 
 
 class AttentionGRUCell(nn.Module):
@@ -272,4 +272,4 @@ if __name__ == '__main__':
     # model = InputModule(hidden_size).to(device)
     model = AnswerModule(vocab_size, hidden_size).to(device)
     model = model.to(device)
-    summary(model, input_size=[(hidden_size,), (hidden_size,), (vocab_size, )])
+    summary(model, input_size=[(hidden_size,), (hidden_size,), (vocab_size,)])
