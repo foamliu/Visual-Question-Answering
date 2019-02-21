@@ -182,7 +182,6 @@ class AnswerModule(nn.Module):
         questions.size() -> (#batch, 1, #hidden_size)
         '''
         M = self.dropout(M)
-        print('M.size(): ' + str(M.size()))
         hidden = M.permute(1, 0, 2)
         batch_size = M.size()[0]
 
