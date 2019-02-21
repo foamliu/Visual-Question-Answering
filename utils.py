@@ -12,6 +12,7 @@ def parse_args():
     # general
     parser.add_argument('--batch-size', type=int, default=32, help='batch size')
     parser.add_argument('--end-epoch', type=int, default=256, help='training epoch size.')
+    parser.add_argument('--checkpoint', type=str, default=None, help='checkpoint')
     args = parser.parse_args()
     return args
 

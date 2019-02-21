@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+from torch import nn
 from torch.autograd import Variable
 from torch.utils.data.dataloader import DataLoader
 
@@ -74,18 +75,30 @@ def train_net(args):
     torch.manual_seed(7)
     np.random.seed(7)
 
+    checkpoint = args.checkpoint
     logger = get_logger()
 
     dset = AiChallengerDataset()
     vocab_size = len(dset.QA.VOCAB)
 
-    model = DMNPlus(hidden_size, vocab_size, num_hop=3, qa=dset.QA)
+    # Initialize / load checkpoint
+    if checkpoint is None:
+        start_epoch = 0
+        epochs_since_improvement = 0
+        model = DMNPlus(hidden_size, vocab_size, num_hop=3, qa=dset.QA)
+        model = nn.DataParallel(model)
+        optim = torch.optim.Adam(model.parameters())
+
+    else:
+        checkpoint = torch.load(checkpoint)
+        start_epoch = checkpoint['epoch'] + 1
+        epochs_since_improvement = checkpoint['epochs_since_improvement']
+        model = checkpoint['model']
+        optim = checkpoint['optimizer']
+
     model.to(device)
 
-    start_epoch = 0
     best_acc = 0
-    epochs_since_improvement = 0
-    optim = torch.optim.Adam(model.parameters())
 
     for epoch in range(start_epoch, args.end_epoch):
         train(dset, model, optim, epoch, logger)
