@@ -183,18 +183,19 @@ class AnswerModule(nn.Module):
         '''
         M = self.dropout(M)
         print('M.size(): ' + str(M.size()))
-        hidden = M
+        hidden = M.permute(1, 0, 2)
         batch_size = M.size()[0]
 
         answer = torch.zeros([batch_size, max_target_len], dtype=torch.long)
 
         for t in range(max_target_len):
             '''
+            hiddle.size -> (1, #batch, #hidden_size)
             preds.size() -> (#batch, 1, #vocab_size)
             topi.size() -> (#batch, 1)
             input.size() -> (#batch, 1, #vocab_size)
             '''
-            preds = F.softmax(self.linear(hidden), dim=-1)
+            preds = F.softmax(self.linear(hidden.permute(1, 0, 2)), dim=-1)
             print('preds.size(): ' + str(preds.size()))
             _, topi = preds.topk(1)
             topi = topi.view((batch_size, 1))
@@ -204,10 +205,9 @@ class AnswerModule(nn.Module):
             print('questions.size(): ' + str(questions.size()))
             concat = torch.cat([input, questions], dim=2)
             print('concat.size(): ' + str(concat.size()))
-            hidden = hidden.permute(1, 0, 2)
             _, hidden = self.gru(concat, hidden)
             print('hidden.size(): ' + str(hidden.size()))
-            answer[:, t] = [topi[i][0] for i in range(batch_size)]
+            answer[:, t] = torch.LongTensor([topi[i][0] for i in range(batch_size)])
 
         return answer
 
