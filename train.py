@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+from torch import nn
 from torch.autograd import Variable
 from torch.utils.data.dataloader import DataLoader
 
@@ -24,7 +25,7 @@ def train(dset, model, optim, epoch, logger):
         images = Variable(images.float().to(device))
         questions = Variable(questions.long().to(device))
         answers = Variable(answers.long().to(device))
-        mask = Variable(get_mask(answers))
+        mask = Variable(get_mask(answers).to(device))
 
         loss, acc = get_loss(model, images, questions, answers, mask)
         loss.backward()
@@ -60,8 +61,9 @@ def valid(dset, model, epoch, logger):
         images = Variable(images.float().to(device))
         questions = Variable(questions.long().to(device))
         answers = Variable(answers.long().to(device))
+        mask = Variable(get_mask(answers).to(device))
 
-        loss, acc = get_loss(model, images, questions, answers)
+        loss, acc = get_loss(model, images, questions, answers, mask)
 
         # Keep track of metrics
         losses.update(loss.item())
@@ -86,7 +88,7 @@ def train_net(args):
         start_epoch = 0
         epochs_since_improvement = 0
         model = DMNPlus(hidden_size, vocab_size, num_hop=3, qa=dset.QA)
-        # model = nn.DataParallel(model)
+        model = nn.DataParallel(model)
         optim = torch.optim.Adam(model.parameters())
 
     else:

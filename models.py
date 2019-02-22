@@ -147,7 +147,7 @@ class InputModule(nn.Module):
         modules = list(vgg19.children())[:-1]
         self.cnn = nn.Sequential(*modules)
         self.hidden_size = hidden_size
-        self.gru = nn.GRU(hidden_size, hidden_size, bidirectional=True, batch_first=True).to(device)
+        self.gru = nn.GRU(hidden_size, hidden_size, bidirectional=True, batch_first=True)
         for name, param in self.gru.state_dict().items():
             if 'weight' in name: init.xavier_normal_(param)
         self.dropout = nn.Dropout(0.1)
@@ -157,7 +157,7 @@ class InputModule(nn.Module):
         images.size() -> (#batch, #channel, #height, #width)
         facts.size() -> (#batch, 196, #hidden = #embedding)
         '''
-        x = self.cnn(images).to(device)
+        x = self.cnn(images)
         batch_num, channel_num, row_num, column_num = x.size()  # (-1, 512, 14, 14)
         x = x.view(batch_num, channel_num, row_num * column_num)  # (-1, 512, 196)
         x = x.permute(0, 2, 1)  # (-1, 196, 512)
@@ -204,7 +204,7 @@ class DMNPlus(nn.Module):
         super(DMNPlus, self).__init__()
         self.num_hop = num_hop
         self.qa = qa
-        self.word_embedding = nn.Embedding(vocab_size, hidden_size, padding_idx=0, sparse=True).to(device)
+        self.word_embedding = nn.Embedding(vocab_size, hidden_size, padding_idx=0, sparse=True)
         init.uniform_(self.word_embedding.state_dict()['weight'], a=-(3 ** 0.5), b=3 ** 0.5)
         self.criterion = nn.CrossEntropyLoss(reduction='sum')
 
@@ -235,12 +235,12 @@ class DMNPlus(nn.Module):
         hidden = M.permute(1, 0, 2)
 
         # Create initial decoder input (start with SOS tokens for each sentence)
-        input = torch.LongTensor([[SOS_token] for _ in range(num_batch)]).to(device)
+        input = Variable(torch.LongTensor([[SOS_token] for _ in range(num_batch)]).to(device))
 
         # Initialize variables
         loss = 0
         max_target_len = targets.size()[1]
-        preds = torch.zeros([num_batch, max_target_len], dtype=torch.long, device=device)
+        preds = Variable(torch.zeros([num_batch, max_target_len], dtype=torch.long).to(device))
 
         # Determine if we are using teacher forcing this iteration
         use_teacher_forcing = True if not self.training and random.random() < teacher_forcing_ratio else False
@@ -263,7 +263,7 @@ class DMNPlus(nn.Module):
 
                 # No teacher forcing: next input is decoder's own current output
                 _, topi = output.topk(1)
-                input = torch.LongTensor([[topi[i][0]] for i in range(num_batch)]).to(device)
+                input = Variable(torch.LongTensor([[topi[i][0]] for i in range(num_batch)]).to(device))
                 # print('input.size(): ' + str(input.size()))
                 # print('preds[:, t].size(): ' + str(preds[:, t].size()))
                 preds[:, t] = input.view(-1)
