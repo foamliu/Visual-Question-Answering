@@ -253,6 +253,11 @@ class DMNPlus(nn.Module):
             for t in range(max_target_len):
                 output, hidden = self.answer_module(input, hidden, questions, self.word_embedding)
 
+                # fill in preds
+                _, topi = output.topk(1)
+                input = Variable(torch.LongTensor([[topi[i][0]] for i in range(num_batch)]).to(device))
+                preds[:, t] = input.view(-1)
+
                 # Teacher forcing: next input is current target
                 input = targets[:, t].view(-1, 1)
 
