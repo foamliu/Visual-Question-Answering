@@ -231,7 +231,7 @@ class DMNPlus(nn.Module):
         hidden = M
 
         # Create initial decoder input (start with SOS tokens for each sentence)
-        input = torch.LongTensor([[SOS_token for _ in range(num_batch)]]).to(device)
+        input = torch.LongTensor([[SOS_token] for _ in range(num_batch)]).to(device)
         mask = get_mask(targets)
 
         # Initialize variables
