@@ -180,6 +180,11 @@ class AnswerModule(nn.Module):
         init.xavier_normal_(self.out.state_dict()['weight'])
 
     def forward(self, input_step, last_hidden, questions, embedding):
+        '''
+        input_step.size() -> (#batch, 1, #hidden_size)
+        last_hidden.size() -> (#batch, 1, #hidden_size)
+        concat.size() -> (#batch, 1, #hidden_size * 2)
+        '''
         # Note: we run this one step (word) at a time
         # Get embedding of current input word
         embedded = embedding(input_step)
@@ -224,7 +229,6 @@ class DMNPlus(nn.Module):
 
         '''
         M.size() -> (#batch, 1, #hidden_size)
-        questions.size() -> (#batch, 1, #hidden_size)
         '''
         M = self.dropout(M)
         # Set initial decoder hidden state to M
@@ -242,13 +246,7 @@ class DMNPlus(nn.Module):
         # Determine if we are using teacher forcing this iteration
         use_teacher_forcing = True if not self.training and random.random() < teacher_forcing_ratio else False
         # Forward batch of sequences through decoder one time step at a time
-        '''
-        hidden.size -> (1, #batch, #hidden_size)
-        preds.size() -> (#batch, #max_target_len)
-        topi.size() -> (#batch, 1)
-        input.size() -> (#batch, 1, #hidden_size)
-        concat.size() -> (#batch, 1, #hidden_size * 2)
-        '''
+
         if use_teacher_forcing:
             for t in range(max_target_len):
                 output, hidden = self.answer_module(input, hidden, questions, self.word_embedding)
