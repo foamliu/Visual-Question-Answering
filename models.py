@@ -173,7 +173,7 @@ class AnswerModule(nn.Module):
     def __init__(self, vocab_size, hidden_size):
         super(AnswerModule, self).__init__()
         self.vocab_size = vocab_size
-        self.gru = nn.GRU(2 * hidden_size, hidden_size)
+        self.gru = nn.GRU(2 * hidden_size, hidden_size, batch_first=True)
         for name, param in self.gru.state_dict().items():
             if 'weight' in name: init.xavier_normal_(param)
         self.out = nn.Linear(hidden_size, vocab_size)
