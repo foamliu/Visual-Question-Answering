@@ -94,7 +94,7 @@ def get_loss(model, images, questions, targets, mask):
     outputs, loss = model.forward(images, questions, targets, mask)
     # print('outputs.size(): ' + str(outputs.size()))
     # print('targets.size(): ' + str(targets.size()))
-    print('outputs: ' + str(outputs))
+    # print('outputs: ' + str(outputs))
     # print('targets: ' + str(targets))
 
     reg_loss = 0
