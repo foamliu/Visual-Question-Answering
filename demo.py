@@ -79,5 +79,5 @@ if __name__ == '__main__':
 
         print('提问：' + question)
         print('标准答案：' + target)
-        print('电脑抢答：' + pred)
+        # print('电脑抢答：' + pred)
         print()
