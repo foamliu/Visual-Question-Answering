@@ -243,9 +243,12 @@ class DMNPlus(nn.Module):
         preds = Variable(torch.zeros([num_batch, max_target_len], dtype=torch.long).to(device))
 
         # Determine if we are using teacher forcing this iteration
-        use_teacher_forcing = True if not self.training and random.random() < teacher_forcing_ratio else False
-        # Forward batch of sequences through decoder one time step at a time
+        if self.training:
+            use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
+        else:
+            use_teacher_forcing = False
 
+        # Forward batch of sequences through decoder one time step at a time
         if use_teacher_forcing:
             for t in range(max_target_len):
                 output, hidden = self.answer_module(input, hidden, questions, self.word_embedding)
