@@ -186,7 +186,7 @@ class AnswerModule(nn.Module):
         # Forward through unidirectional GRU
         print('embedded.size(): ' + str(embedded.size()))
         print('questions.size(): ' + str(questions.size()))
-        concat = torch.cat((embedded, questions), 1)
+        concat = torch.cat((embedded, questions), dim=-1)
         print('concat.size(): ' + str(concat.size()))
         output, hidden = self.gru(concat, last_hidden)
         output = F.softmax(self.out(output), dim=1)
