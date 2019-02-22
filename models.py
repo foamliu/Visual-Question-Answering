@@ -193,7 +193,7 @@ class AnswerModule(nn.Module):
         print('questions.size(): ' + str(questions.size()))
         concat = torch.cat((embedded, questions), dim=-1)
         print('concat.size(): ' + str(concat.size()))
-        output, hidden = self.gru(concat, last_hidden.permute(1, 0, 2))
+        output, hidden = self.gru(concat, last_hidden)
         output = F.softmax(self.out(output), dim=1)
         # Return output and final hidden state
         return output, hidden
@@ -232,7 +232,7 @@ class DMNPlus(nn.Module):
         '''
         M = self.dropout(M)
         # Set initial decoder hidden state to M
-        hidden = M
+        hidden = M.permute(1, 0, 2)
 
         # Create initial decoder input (start with SOS tokens for each sentence)
         input = torch.LongTensor([[SOS_token] for _ in range(num_batch)]).to(device)
