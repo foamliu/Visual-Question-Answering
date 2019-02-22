@@ -79,10 +79,11 @@ def maskNLLLoss(outputs, targets):
     for i in range(batch_size):
         for j in range(max_target_len, 0, -1):
             t = j - 1
-            if targets[i, t] == 1:
+            if targets[i, t] == 0:
+                mask[i, t] = 0
+            else:
                 break
-            mask[i, t] = 0
-
+                
     loss = 0
     n_totals = 0
     for t in range(0, max_target_len):
