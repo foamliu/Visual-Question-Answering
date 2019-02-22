@@ -80,27 +80,12 @@ def get_mask(targets):
     return mask
 
 
-def maskNLLLoss(outputs, targets):
-    '''
-    outputs.size() -> (#batch, #max_target_len, #vocab_size)
-    targets.size() -> (#batch, #max_target_len)
-    mask.size() -> (#batch, #max_target_len)
-    '''
-
-    batch_size, max_target_len = targets.size()
-    mask = get_mask(targets)
-
-    loss = 0
-    n_totals = 0
-    for t in range(0, max_target_len):
-        nTotal = mask[:, t].sum()
-        crossEntropy = -torch.log(torch.gather(input=outputs[:, t, :], dim=1, index=targets[:, t].view(-1, 1)))
-        mask_loss = crossEntropy.masked_select(mask[:, t]).mean()
-        mask_loss = mask_loss.to(device)
-        loss += mask_loss
-        n_totals += nTotal
-
-    return loss, n_totals
+def maskNLLLoss(inp, target, mask):
+    nTotal = mask.sum()
+    crossEntropy = -torch.log(torch.gather(input=inp, dim=1, index=target.view(-1, 1)))
+    loss = crossEntropy.masked_select(mask).mean()
+    loss = loss.to(device)
+    return loss, nTotal.item()
 
 
 def get_loss(model, images, questions, targets):

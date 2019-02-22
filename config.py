@@ -10,6 +10,9 @@ hidden_size = 512
 print_freq = 100
 batch_size = 32
 teacher_forcing_ratio = 0.5
+PAD_token = 0
+EOS_token = 1
+SOS_token = 2
 
 train_folder = 'data/train2014'
 valid_folder = 'data/val2014'

@@ -1,3 +1,5 @@
+import random
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -5,8 +7,9 @@ import torch.nn.init as init
 import torchvision
 from torch.autograd import Variable
 from torchsummary import summary
-import random
-from config import device, hidden_size, teacher_forcing_ratio
+
+from config import device, hidden_size, teacher_forcing_ratio, SOS_token
+from utils import maskNLLLoss, get_mask
 
 
 class AttentionGRUCell(nn.Module):
@@ -171,18 +174,19 @@ class AnswerModule(nn.Module):
         super(AnswerModule, self).__init__()
         self.vocab_size = vocab_size
         self.dropout = nn.Dropout(0.1)
-        self.gru = nn.GRU(2 * hidden_size, hidden_size, batch_first=True)
+        self.gru = nn.GRU(2 * hidden_size, hidden_size)
         for name, param in self.gru.state_dict().items():
             if 'weight' in name: init.xavier_normal_(param)
         self.out = nn.Linear(hidden_size, vocab_size)
         init.xavier_normal_(self.linear.state_dict()['weight'])
 
-    def forward(self, input_step, last_hidden, embedding):
+    def forward(self, input_step, last_hidden, questions, embedding):
         # Note: we run this one step (word) at a time
         # Get embedding of current input word
         embedded = self.embedding(input_step)
         # Forward through unidirectional GRU
-        output, hidden = self.gru(embedded, last_hidden)
+        concat = torch.cat((embedded, questions), 1)
+        output, hidden = self.gru(concat, last_hidden)
         output = F.softmax(output, dim=1)
         # Return output and final hidden state
         return output, hidden
@@ -221,45 +225,50 @@ class DMNPlus(nn.Module):
         '''
         M = self.dropout(M)
         # Set initial decoder hidden state to M
-        hidden = M.permute(1, 0, 2)
+        hidden = M
 
         # Create initial decoder input (start with SOS tokens for each sentence)
-        input = torch.LongTensor([[SOS_token for _ in range(num_batch)]])
-        input = input.to(device)
+        input = torch.LongTensor([[SOS_token for _ in range(num_batch)]]).to(device)
+        mask = get_mask(targets)
 
-
+        # Initialize variables
+        loss = 0
         max_target_len = targets.size()[1]
-        answer = torch.zeros([num_batch, max_target_len, self.vocab_size], dtype=torch.float, device=device)
+        preds = torch.zeros([num_batch, max_target_len], dtype=torch.long, device=device)
 
         # Determine if we are using teacher forcing this iteration
-        use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
+        use_teacher_forcing = True if not self.training and random.random() < teacher_forcing_ratio else False
         # Forward batch of sequences through decoder one time step at a time
         '''
         hidden.size -> (1, #batch, #hidden_size)
-        preds.size() -> (#batch, 1, #vocab_size)
+        preds.size() -> (#batch, #max_target_len)
         topi.size() -> (#batch, 1)
         input.size() -> (#batch, 1, #hidden_size)
         concat.size() -> (#batch, 1, #hidden_size * 2)
         '''
         if use_teacher_forcing:
             for t in range(max_target_len):
-                pass
+                output, hidden = self.answer_module(input, hidden, questions, self.word_embedding)
+
+                # Teacher forcing: next input is current target
+                input = targets[t].view(1, -1)
+
+                # Calculate and accumulate loss
+                mask_loss, nTotal = maskNLLLoss(output, targets[:, t], mask[:, t])
+                loss += mask_loss
+
         else:
             for t in range(max_target_len):
-                preds = self.answer_module(hidden, self.word_embedding, targets)
-
-
-                preds = F.softmax(self.out(hidden.permute(1, 0, 2)), dim=-1)
+                output, hidden = self.answer_module(input, hidden, questions, self.word_embedding)
 
                 # No teacher forcing: next input is decoder's own current output
-                _, topi = preds.topk(1)
-                topi = topi.view((num_batch, 1))
-                input = self.word_embedding(topi)
-                concat = torch.cat([input, questions], dim=2)
-                _, hidden = self.gru(concat, hidden)
-                answer[:, t, :] = preds.squeeze(1)
+                _, topi = output.topk(1)
+                input = torch.LongTensor([[topi[i][0] for i in range(num_batch)]]).to(device)
+                preds[:, t] = input
 
-
+                # Calculate and accumulate loss
+                mask_loss, nTotal = maskNLLLoss(output, targets[:, t], mask[:, t])
+                loss += mask_loss
 
         return preds
 
