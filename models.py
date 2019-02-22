@@ -56,7 +56,7 @@ class AttentionGRU(nn.Module):
         C.size() -> (#batch, #hidden)
         '''
         batch_num, sen_num, embedding_size = facts.size()
-        C = Variable(torch.zeros(self.hidden_size)).cuda()
+        C = Variable(torch.zeros(self.hidden_size)).to(device)
         for sid in range(sen_num):
             fact = facts[:, sid, :]
             g = G[:, sid]
@@ -163,7 +163,7 @@ class InputModule(nn.Module):
         x = x.permute(0, 2, 1)  # (-1, 196, 512)
         x = self.dropout(x)
 
-        h0 = Variable(torch.zeros(2, batch_num, self.hidden_size).cuda())
+        h0 = Variable(torch.zeros(2, batch_num, self.hidden_size).to(device))
         facts, hdn = self.gru(x, h0)
         facts = facts[:, :, :hidden_size] + facts[:, :, hidden_size:]
         return facts
@@ -204,7 +204,7 @@ class DMNPlus(nn.Module):
         super(DMNPlus, self).__init__()
         self.num_hop = num_hop
         self.qa = qa
-        self.word_embedding = nn.Embedding(vocab_size, hidden_size, padding_idx=0, sparse=True)
+        self.word_embedding = nn.Embedding(vocab_size, hidden_size, padding_idx=0, sparse=True).to(device)
         init.uniform_(self.word_embedding.state_dict()['weight'], a=-(3 ** 0.5), b=3 ** 0.5)
         self.criterion = nn.CrossEntropyLoss(reduction='sum')
 
