@@ -184,10 +184,10 @@ class AnswerModule(nn.Module):
         # Get embedding of current input word
         embedded = embedding(input_step)
         # Forward through unidirectional GRU
-        # print('embedded.size(): ' + str(embedded.size()))
-        # print('questions.size(): ' + str(questions.size()))
+        print('embedded.size(): ' + str(embedded.size()))
+        print('questions.size(): ' + str(questions.size()))
         concat = torch.cat((embedded, questions), dim=-1)
-        # print('concat.size(): ' + str(concat.size()))
+        print('concat.size(): ' + str(concat.size()))
         output, hidden = self.gru(concat, last_hidden.permute(1, 0, 2))
         output = F.softmax(self.out(output), dim=1)
         # Return output and final hidden state
