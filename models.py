@@ -212,8 +212,7 @@ class DMNPlus(nn.Module):
 
     def forward(self, images, questions, targets):
         '''
-        contexts.size() -> (#batch, #sentence, #token) -> (#batch, #sentence, #hidden = #embedding)
-        questions.size() -> (#batch, #token) -> (#batch, 1, #hidden)
+        questions.size() -> (#batch, 1, #hidden_size)
         '''
         num_batch = questions.size()[0]
 
@@ -255,7 +254,7 @@ class DMNPlus(nn.Module):
                 output, hidden = self.answer_module(input, hidden, questions, self.word_embedding)
 
                 # Teacher forcing: next input is current target
-                input = targets[t].view(1, -1)
+                input = targets[:, t]
 
                 # Calculate and accumulate loss
                 mask_loss, nTotal = maskNLLLoss(output, targets[:, t], mask[:, t])
