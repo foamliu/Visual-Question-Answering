@@ -270,7 +270,7 @@ class DMNPlus(nn.Module):
                 mask_loss, nTotal = maskNLLLoss(output, targets[:, t], mask[:, t])
                 loss += mask_loss
 
-        return preds
+        return preds, loss
 
     def interpret_indexed_tensor(self, var):
         if len(var.size()) == 3:

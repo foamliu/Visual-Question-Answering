@@ -89,16 +89,12 @@ def maskNLLLoss(inp, target, mask):
 
 
 def get_loss(model, images, questions, targets):
-    max_target_len = targets.size()[1]
-    outputs = model.forward(images, questions, max_target_len)
+    outputs, loss = model.forward(images, questions, targets)
 
-    loss, n_totals = maskNLLLoss(outputs, targets)
     reg_loss = 0
     for param in model.parameters():
         reg_loss += 0.001 * torch.sum(param * param)
-    preds = F.softmax(outputs, dim=-1)
-    _, pred_ids = torch.max(preds, dim=-1)
 
-    corrects = (pred_ids.data == targets.data)
+    corrects = (outputs.data == targets.data)
     acc = torch.mean(corrects.float())
     return loss + reg_loss, acc
