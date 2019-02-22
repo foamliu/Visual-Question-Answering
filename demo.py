@@ -58,6 +58,7 @@ if __name__ == '__main__':
 
     data = pad_collate(batch)
     imgs, questions, targets = data
+    imgs = imgs.float()
     max_target_len = targets.size()[1]
     outputs = model.forward(imgs, questions, max_target_len)
     preds = F.softmax(outputs, dim=-1)
