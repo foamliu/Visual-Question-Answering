@@ -27,7 +27,6 @@ if __name__ == '__main__':
     num_val_samples = range(len(val[0]))
     _ids = random.sample(num_val_samples, 10)
 
-    _pred_ids = []
     questions = []
     targets = []
     ensure_folder('images')
@@ -60,10 +59,14 @@ if __name__ == '__main__':
     _imgs, _questions, _targets = data
     _imgs = _imgs.float()
     _max_target_len = _targets.size()[1]
+    print('_max_target_len: ' + str(_max_target_len))
     outputs = model.forward(_imgs, _questions, _max_target_len)
     preds = F.softmax(outputs, dim=-1)
+    print('preds.size(): ' + str(preds.size()))
     _, pred_ids = torch.max(preds, dim=1)
-    _pred_ids += list(pred_ids.cpu().numpy())
+    print('pred_ids.size(): ' + str(pred_ids.size()))
+    _pred_ids = list(pred_ids.cpu().numpy())
+    print('len(_pred_ids): ' + str(_pred_ids))
 
     for i in range(10):
         question = questions[i]
