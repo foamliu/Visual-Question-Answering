@@ -28,9 +28,9 @@ if __name__ == '__main__':
 
     for i, data in enumerate(valid_loader):
         imgs, questions, targets = data
-        imgs = Variable(imgs.to(device))
-        questions = Variable(questions.to(device))
-        targets = Variable(targets.to(device))
+        imgs = Variable(imgs.float().to(device))
+        questions = Variable(questions.long().to(device))
+        targets = Variable(targets.long().to(device))
 
         max_target_len = targets.size()[1]
         outputs = model.forward(imgs, questions, max_target_len)
