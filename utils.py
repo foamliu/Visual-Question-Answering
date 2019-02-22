@@ -1,7 +1,7 @@
 import argparse
 import logging
 import os
-
+from config import device
 import torch
 
 
@@ -84,7 +84,7 @@ def maskNLLLoss(inp, target, mask):
     # print('mask.size(): ' + str(mask.size()))
     crossEntropy = -torch.log(torch.gather(input=inp.squeeze(1), dim=1, index=target.view(-1, 1)))
     loss = crossEntropy.masked_select(mask).mean()
-    loss = loss.cuda()
+    loss = loss.to(device)
     return loss, nTotal.item()
 
 
