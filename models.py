@@ -157,7 +157,7 @@ class InputModule(nn.Module):
         images.size() -> (#batch, #channel, #height, #width)
         facts.size() -> (#batch, 196, #hidden = #embedding)
         '''
-        x = self.cnn(images)
+        x = self.cnn(images).to(device)
         batch_num, channel_num, row_num, column_num = x.size()  # (-1, 512, 14, 14)
         x = x.view(batch_num, channel_num, row_num * column_num)  # (-1, 512, 196)
         x = x.permute(0, 2, 1)  # (-1, 196, 512)
