@@ -182,7 +182,7 @@ class AnswerModule(nn.Module):
     def forward(self, input_step, last_hidden, questions, embedding):
         # Note: we run this one step (word) at a time
         # Get embedding of current input word
-        embedded = self.embedding(input_step)
+        embedded = embedding(input_step)
         # Forward through unidirectional GRU
         concat = torch.cat((embedded, questions), 1)
         output, hidden = self.gru(concat, last_hidden)
