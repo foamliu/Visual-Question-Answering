@@ -147,7 +147,7 @@ class InputModule(nn.Module):
         modules = list(vgg19.children())[:-1]
         self.cnn = nn.Sequential(*modules)
         self.hidden_size = hidden_size
-        self.gru = nn.GRU(hidden_size, hidden_size, bidirectional=True, batch_first=True, device=device)
+        self.gru = nn.GRU(hidden_size, hidden_size, bidirectional=True, batch_first=True).to(device)
         for name, param in self.gru.state_dict().items():
             if 'weight' in name: init.xavier_normal_(param)
         self.dropout = nn.Dropout(0.1)
