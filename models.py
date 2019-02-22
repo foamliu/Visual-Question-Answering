@@ -189,10 +189,10 @@ class AnswerModule(nn.Module):
         # Get embedding of current input word
         embedded = embedding(input_step)
         # Forward through unidirectional GRU
-        print('embedded.size(): ' + str(embedded.size()))
-        print('questions.size(): ' + str(questions.size()))
+        # print('embedded.size(): ' + str(embedded.size()))
+        # print('questions.size(): ' + str(questions.size()))
         concat = torch.cat((embedded, questions), dim=-1)
-        print('concat.size(): ' + str(concat.size()))
+        # print('concat.size(): ' + str(concat.size()))
         output, hidden = self.gru(concat, last_hidden)
         output = F.softmax(self.out(output), dim=1)
         # Return output and final hidden state
@@ -204,7 +204,7 @@ class DMNPlus(nn.Module):
         super(DMNPlus, self).__init__()
         self.num_hop = num_hop
         self.qa = qa
-        self.word_embedding = nn.Embedding(vocab_size, hidden_size, padding_idx=0, sparse=True).cuda()
+        self.word_embedding = nn.Embedding(vocab_size, hidden_size, padding_idx=0, sparse=True)
         init.uniform_(self.word_embedding.state_dict()['weight'], a=-(3 ** 0.5), b=3 ** 0.5)
         self.criterion = nn.CrossEntropyLoss(reduction='sum')
 
