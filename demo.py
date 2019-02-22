@@ -63,7 +63,7 @@ if __name__ == '__main__':
     outputs = model.forward(_imgs, _questions, _max_target_len)
     preds = F.softmax(outputs, dim=-1)
     print('preds.size(): ' + str(preds.size()))
-    _, pred_ids = torch.max(preds, dim=1)
+    _, pred_ids = torch.max(preds, dim=-1)
     print('pred_ids.size(): ' + str(pred_ids.size()))
     _pred_ids = list(pred_ids.cpu().numpy())
     print('len(_pred_ids): ' + str(_pred_ids))
