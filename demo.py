@@ -24,8 +24,8 @@ if __name__ == '__main__':
     image_ids_val, questions_val, answers_val = val
     prefix = 'data/val2014/COCO_val2014_0000'
 
-    chosen_samples = range(len(val))
-    _ids = random.sample(chosen_samples, 10)
+    num_val_samples = range(len(val[0]))
+    _ids = random.sample(num_val_samples, 10)
 
     _pred_ids = []
     questions = []
