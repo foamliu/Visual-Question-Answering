@@ -47,7 +47,7 @@ def train(dset, model, optim, epoch, logger):
 
 
 def valid(dset, model, epoch, logger):
-    dset.set_mode('valid')
+    dset.set_mode('val')
     valid_loader = DataLoader(dset, batch_size=args.batch_size, shuffle=False, collate_fn=pad_collate)
 
     model.eval()
