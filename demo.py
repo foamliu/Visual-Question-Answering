@@ -76,6 +76,7 @@ if __name__ == '__main__':
 
         pred = _pred_ids[i]
         pred = ''.join([IVOCAB[id] for id in pred]).replace('<EOS>', '')
+        pred = pred.replace('<EOS>', '').replace('<PAD>', '')
 
         print('提问：' + question)
         print('标准答案：' + target)
