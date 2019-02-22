@@ -178,7 +178,7 @@ class AnswerModule(nn.Module):
         for name, param in self.gru.state_dict().items():
             if 'weight' in name: init.xavier_normal_(param)
         self.out = nn.Linear(hidden_size, vocab_size)
-        init.xavier_normal_(self.linear.state_dict()['weight'])
+        init.xavier_normal_(self.out.state_dict()['weight'])
 
     def forward(self, input_step, last_hidden, questions, embedding):
         # Note: we run this one step (word) at a time
@@ -187,7 +187,7 @@ class AnswerModule(nn.Module):
         # Forward through unidirectional GRU
         concat = torch.cat((embedded, questions), 1)
         output, hidden = self.gru(concat, last_hidden)
-        output = F.softmax(output, dim=1)
+        output = F.softmax(self.out(output), dim=1)
         # Return output and final hidden state
         return output, hidden
 
