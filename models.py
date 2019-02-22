@@ -254,7 +254,7 @@ class DMNPlus(nn.Module):
                 output, hidden = self.answer_module(input, hidden, questions, self.word_embedding)
 
                 # Teacher forcing: next input is current target
-                input = targets[:, t]
+                input = targets[:, t].view(-1, 1)
 
                 # Calculate and accumulate loss
                 mask_loss, nTotal = maskNLLLoss(output, targets[:, t], mask[:, t])
