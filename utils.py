@@ -4,13 +4,11 @@ import os
 
 import torch
 
-from config import device
-
 
 def parse_args():
     parser = argparse.ArgumentParser(description='train DMN+')
     # general
-    parser.add_argument('--batch-size', type=int, default=32, help='batch size')
+    parser.add_argument('--batch-size', type=int, default=64, help='batch size')
     parser.add_argument('--end-epoch', type=int, default=256, help='training epoch size.')
     parser.add_argument('--checkpoint', type=str, default=None, help='checkpoint')
     args = parser.parse_args()
@@ -86,7 +84,7 @@ def maskNLLLoss(inp, target, mask):
     # print('mask.size(): ' + str(mask.size()))
     crossEntropy = -torch.log(torch.gather(input=inp.squeeze(1), dim=1, index=target.view(-1, 1)))
     loss = crossEntropy.masked_select(mask).mean()
-    loss = loss.to(device)
+    loss = loss.cuda()
     return loss, nTotal.item()
 
 

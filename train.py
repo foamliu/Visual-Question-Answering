@@ -28,7 +28,7 @@ def train(dset, model, optim, epoch, logger):
         mask = Variable(get_mask(answers).cuda())
 
         loss, acc = get_loss(model, images, questions, answers, mask)
-        loss.backward()
+        loss.sum().backward()
 
         # Keep track of metrics
         losses.update(loss.item())
