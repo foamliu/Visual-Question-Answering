@@ -53,6 +53,9 @@ if __name__ == '__main__':
         questions.append(question)
         targets.append(answer)
 
+        elem = img, question, answer
+        batch.append(elem)
+
     data = pad_collate(batch)
     imgs, questions, targets = data
     max_target_len = targets.size()[1]
