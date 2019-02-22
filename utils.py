@@ -5,7 +5,6 @@ import os
 import torch
 
 
-
 def parse_args():
     parser = argparse.ArgumentParser(description='train DMN+')
     # general
