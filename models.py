@@ -163,7 +163,7 @@ class InputModule(nn.Module):
         x = x.permute(0, 2, 1)  # (-1, 196, 512)
         x = self.dropout(x)
 
-        h0 = Variable(torch.zeros(2, batch_num, self.hidden_size).to(device))
+        h0 = Variable(torch.zeros(2, batch_num, self.hidden_size))
         facts, hdn = self.gru(x, h0)
         facts = facts[:, :, :hidden_size] + facts[:, :, hidden_size:]
         return facts
