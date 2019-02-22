@@ -34,7 +34,7 @@ if __name__ == '__main__':
 
     batch = []
 
-    for i, index in _ids:
+    for i, index in enumerate(_ids):
         image_id = int(image_ids_val[index])
         image_id = '{:08d}'.format(image_id)
         filename = prefix + image_id + '.jpg'
