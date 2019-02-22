@@ -194,7 +194,7 @@ class AnswerModule(nn.Module):
         concat = torch.cat((embedded, questions), dim=-1)
         # print('concat.size(): ' + str(concat.size()))
         output, hidden = self.gru(concat, last_hidden)
-        output = F.softmax(self.out(output), dim=1)
+        output = F.softmax(self.out(output), dim=-1)
         # Return output and final hidden state
         return output, hidden
 
