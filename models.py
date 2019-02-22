@@ -9,7 +9,7 @@ from torch.autograd import Variable
 from torchsummary import summary
 
 from config import device, hidden_size, teacher_forcing_ratio, SOS_token
-from utils import maskNLLLoss, get_mask
+from utils import maskNLLLoss
 
 
 class AttentionGRUCell(nn.Module):
@@ -215,7 +215,7 @@ class DMNPlus(nn.Module):
 
         self.dropout = nn.Dropout(0.1)
 
-    def forward(self, images, questions, targets):
+    def forward(self, images, questions, targets, mask):
         '''
         questions.size() -> (#batch, 1, #hidden_size)
         '''
@@ -236,7 +236,6 @@ class DMNPlus(nn.Module):
 
         # Create initial decoder input (start with SOS tokens for each sentence)
         input = torch.LongTensor([[SOS_token] for _ in range(num_batch)]).to(device)
-        mask = get_mask(targets)
 
         # Initialize variables
         loss = 0

@@ -1,13 +1,12 @@
 import numpy as np
 import torch
-from torch import nn
 from torch.autograd import Variable
 from torch.utils.data.dataloader import DataLoader
 
 from config import device, hidden_size, print_freq
 from data_gen import MsCocoVqaDataset, pad_collate
 from models import DMNPlus
-from utils import parse_args, get_logger, AverageMeter, save_checkpoint, get_loss
+from utils import parse_args, get_logger, AverageMeter, save_checkpoint, get_loss, get_mask
 
 
 def train(dset, model, optim, epoch, logger):
@@ -25,8 +24,9 @@ def train(dset, model, optim, epoch, logger):
         images = Variable(images.float().to(device))
         questions = Variable(questions.long().to(device))
         answers = Variable(answers.long().to(device))
+        mask = Variable(get_mask(answers))
 
-        loss, acc = get_loss(model, images, questions, answers)
+        loss, acc = get_loss(model, images, questions, answers, mask)
         loss.backward()
 
         # Keep track of metrics
