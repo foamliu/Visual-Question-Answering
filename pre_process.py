@@ -1,6 +1,5 @@
 import json
 import pickle
-import random
 
 import jieba
 from tqdm import tqdm
