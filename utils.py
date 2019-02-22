@@ -67,14 +67,8 @@ def save_checkpoint(epoch, epochs_since_improvement, model, optimizer, acc, is_b
         torch.save(state, 'BEST_checkpoint.tar')
 
 
-def maskNLLLoss(outputs, targets):
-    '''
-    outputs.size() -> (#batch, #max_target_len, #vocab_size)
-    targets.size() -> (#batch, #max_target_len)
-    mask.size() -> (#batch, #max_target_len)
-    '''
+def get_mask(targets):
     batch_size, max_target_len = targets.size()
-
     mask = torch.ones_like(targets, device=device, dtype=torch.uint8)
     for i in range(batch_size):
         for j in range(max_target_len, 0, -1):
@@ -83,7 +77,19 @@ def maskNLLLoss(outputs, targets):
                 mask[i, t] = 0
             else:
                 break
-                
+    return mask
+
+
+def maskNLLLoss(outputs, targets):
+    '''
+    outputs.size() -> (#batch, #max_target_len, #vocab_size)
+    targets.size() -> (#batch, #max_target_len)
+    mask.size() -> (#batch, #max_target_len)
+    '''
+
+    batch_size, max_target_len = targets.size()
+    mask = get_mask(targets)
+
     loss = 0
     n_totals = 0
     for t in range(0, max_target_len):

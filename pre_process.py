@@ -63,8 +63,8 @@ if __name__ == '__main__':
         raw_data = json.load(file)
 
     QA = adict()
-    QA.VOCAB = {'<PAD>': 0, '<EOS>': 1}
-    QA.IVOCAB = {0: '<PAD>', 1: '<EOS>'}
+    QA.VOCAB = {'<PAD>': 0, '<EOS>': 1, '<SOS>': 2}
+    QA.IVOCAB = {0: '<PAD>', 1: '<EOS>', 2: '<SOS>'}
     data = dict()
     data['VOCAB'] = QA.VOCAB
     data['IVOCAB'] = QA.IVOCAB

@@ -9,6 +9,7 @@ hidden_size = 512
 # Configure training/optimization
 print_freq = 100
 batch_size = 32
+teacher_forcing_ratio = 0.5
 
 train_folder = 'data/train2014'
 valid_folder = 'data/val2014'

@@ -5,8 +5,8 @@ import torch.nn.init as init
 import torchvision
 from torch.autograd import Variable
 from torchsummary import summary
-
-from config import device, hidden_size
+import random
+from config import device, hidden_size, teacher_forcing_ratio
 
 
 class AttentionGRUCell(nn.Module):
@@ -174,37 +174,18 @@ class AnswerModule(nn.Module):
         self.gru = nn.GRU(2 * hidden_size, hidden_size, batch_first=True)
         for name, param in self.gru.state_dict().items():
             if 'weight' in name: init.xavier_normal_(param)
-        self.linear = nn.Linear(hidden_size, vocab_size)
+        self.out = nn.Linear(hidden_size, vocab_size)
         init.xavier_normal_(self.linear.state_dict()['weight'])
 
-    def forward(self, M, questions, word_embedding, max_target_len):
-        '''
-        M.size() -> (#batch, 1, #hidden_size)
-        questions.size() -> (#batch, 1, #hidden_size)
-        '''
-        M = self.dropout(M)
-        hidden = M.permute(1, 0, 2)
-        batch_size = M.size()[0]
-
-        answer = torch.zeros([batch_size, max_target_len, self.vocab_size], dtype=torch.float, device=device)
-
-        for t in range(max_target_len):
-            '''
-            hidden.size -> (1, #batch, #hidden_size)
-            preds.size() -> (#batch, 1, #vocab_size)
-            topi.size() -> (#batch, 1)
-            input.size() -> (#batch, 1, #hidden_size)
-            concat.size() -> (#batch, 1, #hidden_size * 2)
-            '''
-            preds = F.softmax(self.linear(hidden.permute(1, 0, 2)), dim=-1)
-            _, topi = preds.topk(1)
-            topi = topi.view((batch_size, 1))
-            input = word_embedding(topi)
-            concat = torch.cat([input, questions], dim=2)
-            _, hidden = self.gru(concat, hidden)
-            answer[:, t, :] = preds.squeeze(1)
-
-        return answer
+    def forward(self, input_step, last_hidden, embedding):
+        # Note: we run this one step (word) at a time
+        # Get embedding of current input word
+        embedded = self.embedding(input_step)
+        # Forward through unidirectional GRU
+        output, hidden = self.gru(embedded, last_hidden)
+        output = F.softmax(output, dim=1)
+        # Return output and final hidden state
+        return output, hidden
 
 
 class DMNPlus(nn.Module):
@@ -221,17 +202,65 @@ class DMNPlus(nn.Module):
         self.memory = EpisodicMemory(hidden_size)
         self.answer_module = AnswerModule(vocab_size, hidden_size)
 
-    def forward(self, images, questions, max_target_len):
+    def forward(self, images, questions, targets):
         '''
         contexts.size() -> (#batch, #sentence, #token) -> (#batch, #sentence, #hidden = #embedding)
         questions.size() -> (#batch, #token) -> (#batch, 1, #hidden)
         '''
+        num_batch = questions.size()[0]
+
         facts = self.input_module(images)
         questions = self.question_module(questions, self.word_embedding)
         M = questions
         for hop in range(self.num_hop):
             M = self.memory(facts, questions, M)
-        preds = self.answer_module(M, questions, self.word_embedding, max_target_len)
+
+        '''
+        M.size() -> (#batch, 1, #hidden_size)
+        questions.size() -> (#batch, 1, #hidden_size)
+        '''
+        M = self.dropout(M)
+        # Set initial decoder hidden state to M
+        hidden = M.permute(1, 0, 2)
+
+        # Create initial decoder input (start with SOS tokens for each sentence)
+        input = torch.LongTensor([[SOS_token for _ in range(num_batch)]])
+        input = input.to(device)
+
+
+        max_target_len = targets.size()[1]
+        answer = torch.zeros([num_batch, max_target_len, self.vocab_size], dtype=torch.float, device=device)
+
+        # Determine if we are using teacher forcing this iteration
+        use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
+        # Forward batch of sequences through decoder one time step at a time
+        '''
+        hidden.size -> (1, #batch, #hidden_size)
+        preds.size() -> (#batch, 1, #vocab_size)
+        topi.size() -> (#batch, 1)
+        input.size() -> (#batch, 1, #hidden_size)
+        concat.size() -> (#batch, 1, #hidden_size * 2)
+        '''
+        if use_teacher_forcing:
+            for t in range(max_target_len):
+                pass
+        else:
+            for t in range(max_target_len):
+                preds = self.answer_module(hidden, self.word_embedding, targets)
+
+
+                preds = F.softmax(self.out(hidden.permute(1, 0, 2)), dim=-1)
+
+                # No teacher forcing: next input is decoder's own current output
+                _, topi = preds.topk(1)
+                topi = topi.view((num_batch, 1))
+                input = self.word_embedding(topi)
+                concat = torch.cat([input, questions], dim=2)
+                _, hidden = self.gru(concat, hidden)
+                answer[:, t, :] = preds.squeeze(1)
+
+
+
         return preds
 
     def interpret_indexed_tensor(self, var):
