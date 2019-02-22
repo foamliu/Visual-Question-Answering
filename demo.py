@@ -18,7 +18,7 @@ if __name__ == '__main__':
     model.eval()
 
     dset = MsCocoVqaDataset()
-    dset.set_mode('valid')
+    dset.set_mode('val')
     valid_loader = DataLoader(dset, batch_size=batch_size, shuffle=False, collate_fn=pad_collate)
 
     chosen_samples = range(len(dset))
