@@ -265,7 +265,7 @@ class DMNPlus(nn.Module):
                 # No teacher forcing: next input is decoder's own current output
                 _, topi = output.topk(1)
                 input = torch.LongTensor([[topi[i][0]] for i in range(num_batch)]).to(device)
-                preds[:, t] = input
+                preds[:, t] = input.view(-1, 1)
 
                 # Calculate and accumulate loss
                 mask_loss, nTotal = maskNLLLoss(output, targets[:, t], mask[:, t])
