@@ -173,7 +173,7 @@ class AnswerModule(nn.Module):
     def __init__(self, vocab_size, hidden_size):
         super(AnswerModule, self).__init__()
         self.vocab_size = vocab_size
-        self.gru = nn.GRU(2 * hidden_size, hidden_size, batch_first=True)
+        self.gru = nn.GRU(hidden_size * 2, hidden_size, batch_first=True)
         for name, param in self.gru.state_dict().items():
             if 'weight' in name: init.xavier_normal_(param)
         self.out = nn.Linear(hidden_size, vocab_size)
@@ -187,6 +187,7 @@ class AnswerModule(nn.Module):
         print('embedded.size(): ' + str(embedded.size()))
         print('questions.size(): ' + str(questions.size()))
         concat = torch.cat((embedded, questions), 1)
+        print('concat.size(): ' + str(concat.size()))
         output, hidden = self.gru(concat, last_hidden)
         output = F.softmax(self.out(output), dim=1)
         # Return output and final hidden state
