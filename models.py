@@ -173,7 +173,6 @@ class AnswerModule(nn.Module):
     def __init__(self, vocab_size, hidden_size):
         super(AnswerModule, self).__init__()
         self.vocab_size = vocab_size
-        self.dropout = nn.Dropout(0.1)
         self.gru = nn.GRU(2 * hidden_size, hidden_size)
         for name, param in self.gru.state_dict().items():
             if 'weight' in name: init.xavier_normal_(param)
@@ -205,6 +204,8 @@ class DMNPlus(nn.Module):
         self.question_module = QuestionModule(hidden_size)
         self.memory = EpisodicMemory(hidden_size)
         self.answer_module = AnswerModule(vocab_size, hidden_size)
+
+        self.dropout = nn.Dropout(0.1)
 
     def forward(self, images, questions, targets):
         '''
