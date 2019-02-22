@@ -4,7 +4,6 @@ import os
 
 import torch
 
-from config import device
 
 
 def parse_args():
@@ -68,7 +67,7 @@ def save_checkpoint(epoch, epochs_since_improvement, model, optimizer, acc, is_b
 
 def get_mask(targets):
     batch_size, max_target_len = targets.size()
-    mask = torch.ones_like(targets, device=device, dtype=torch.uint8)
+    mask = torch.ones_like(targets, dtype=torch.uint8).cuda()
     for i in range(batch_size):
         for j in range(max_target_len, 0, -1):
             t = j - 1
@@ -86,7 +85,7 @@ def maskNLLLoss(inp, target, mask):
     # print('mask.size(): ' + str(mask.size()))
     crossEntropy = -torch.log(torch.gather(input=inp.squeeze(1), dim=1, index=target.view(-1, 1)))
     loss = crossEntropy.masked_select(mask).mean()
-    loss = loss.to(device)
+    loss = loss.cuda()
     return loss, nTotal.item()
 
 

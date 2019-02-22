@@ -8,7 +8,7 @@ import torchvision
 from torch.autograd import Variable
 from torchsummary import summary
 
-from config import device, hidden_size, teacher_forcing_ratio, SOS_token
+from config import hidden_size, teacher_forcing_ratio, SOS_token
 from utils import maskNLLLoss
 
 
@@ -56,7 +56,7 @@ class AttentionGRU(nn.Module):
         C.size() -> (#batch, #hidden)
         '''
         batch_num, sen_num, embedding_size = facts.size()
-        C = Variable(torch.zeros(self.hidden_size)).to(device)
+        C = Variable(torch.zeros(self.hidden_size)).cuda()
         for sid in range(sen_num):
             fact = facts[:, sid, :]
             g = G[:, sid]
@@ -163,7 +163,7 @@ class InputModule(nn.Module):
         x = x.permute(0, 2, 1)  # (-1, 196, 512)
         x = self.dropout(x)
 
-        h0 = Variable(torch.zeros(2, batch_num, self.hidden_size)).to(device)
+        h0 = Variable(torch.zeros(2, batch_num, self.hidden_size)).cuda()
         facts, hdn = self.gru(x, h0)
         facts = facts[:, :, :hidden_size] + facts[:, :, hidden_size:]
         return facts
@@ -235,12 +235,12 @@ class DMNPlus(nn.Module):
         hidden = M.permute(1, 0, 2)
 
         # Create initial decoder input (start with SOS tokens for each sentence)
-        input = Variable(torch.LongTensor([[SOS_token] for _ in range(num_batch)]).to(device))
+        input = Variable(torch.LongTensor([[SOS_token] for _ in range(num_batch)]).cuda())
 
         # Initialize variables
         loss = 0
         max_target_len = targets.size()[1]
-        preds = Variable(torch.zeros([num_batch, max_target_len], dtype=torch.long).to(device))
+        preds = Variable(torch.zeros([num_batch, max_target_len], dtype=torch.long).cuda())
 
         # Determine if we are using teacher forcing this iteration
         if self.training:
@@ -255,7 +255,7 @@ class DMNPlus(nn.Module):
 
                 # fill in preds
                 _, topi = output.topk(1)
-                input = Variable(torch.LongTensor([[topi[i][0]] for i in range(num_batch)]).to(device))
+                input = Variable(torch.LongTensor([[topi[i][0]] for i in range(num_batch)]).cuda())
                 preds[:, t] = input.view(-1)
 
                 # Teacher forcing: next input is current target
@@ -271,7 +271,7 @@ class DMNPlus(nn.Module):
 
                 # No teacher forcing: next input is decoder's own current output
                 _, topi = output.topk(1)
-                input = Variable(torch.LongTensor([[topi[i][0]] for i in range(num_batch)]).to(device))
+                input = Variable(torch.LongTensor([[topi[i][0]] for i in range(num_batch)]).cuda())
                 # print('input.size(): ' + str(input.size()))
                 # print('preds[:, t].size(): ' + str(preds[:, t].size()))
                 preds[:, t] = input.view(-1)
@@ -305,6 +305,6 @@ if __name__ == '__main__':
     vocab_size = 15270
     # model = DMNPlus(hidden_size, vocab_size, num_hop=3)
     # model = InputModule(hidden_size).to(device)
-    model = AnswerModule(vocab_size, hidden_size).to(device)
-    model = model.to(device)
+    model = AnswerModule(vocab_size, hidden_size).cuda()
+    model = model.cuda()
     summary(model, input_size=[(hidden_size,), (hidden_size,), (vocab_size,)])

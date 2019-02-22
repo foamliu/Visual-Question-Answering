@@ -4,7 +4,7 @@ from torch import nn
 from torch.autograd import Variable
 from torch.utils.data.dataloader import DataLoader
 
-from config import device, hidden_size, print_freq
+from config import hidden_size, print_freq
 from data_gen import MsCocoVqaDataset, pad_collate
 from models import DMNPlus
 from utils import parse_args, get_logger, AverageMeter, save_checkpoint, get_loss, get_mask
@@ -22,10 +22,10 @@ def train(dset, model, optim, epoch, logger):
     for i, data in enumerate(train_loader):
         optim.zero_grad()
         images, questions, answers = data
-        images = Variable(images.float().to(device))
-        questions = Variable(questions.long().to(device))
-        answers = Variable(answers.long().to(device))
-        mask = Variable(get_mask(answers).to(device))
+        images = Variable(images.float().cuda())
+        questions = Variable(questions.long().cuda())
+        answers = Variable(answers.long().cuda())
+        mask = Variable(get_mask(answers).cuda())
 
         loss, acc = get_loss(model, images, questions, answers, mask)
         loss.backward()
@@ -58,10 +58,10 @@ def valid(dset, model, epoch, logger):
 
     for batch_idx, data in enumerate(valid_loader):
         images, questions, answers = data
-        images = Variable(images.float().to(device))
-        questions = Variable(questions.long().to(device))
-        answers = Variable(answers.long().to(device))
-        mask = Variable(get_mask(answers).to(device))
+        images = Variable(images.float().cuda())
+        questions = Variable(questions.long().cuda())
+        answers = Variable(answers.long().cuda())
+        mask = Variable(get_mask(answers).cuda())
 
         loss, acc = get_loss(model, images, questions, answers, mask)
 
@@ -98,7 +98,7 @@ def train_net(args):
         model = checkpoint['model']
         optim = checkpoint['optimizer']
 
-    model.to(device)
+    model.cuda()
 
     best_acc = 0
 
