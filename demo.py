@@ -57,10 +57,10 @@ if __name__ == '__main__':
         batch.append(elem)
 
     data = pad_collate(batch)
-    imgs, questions, targets = data
-    imgs = imgs.float()
-    max_target_len = targets.size()[1]
-    outputs = model.forward(imgs, questions, max_target_len)
+    _imgs, _questions, _targets = data
+    _imgs = _imgs.float()
+    _max_target_len = targets.size()[1]
+    outputs = model.forward(_imgs, _questions, _max_target_len)
     preds = F.softmax(outputs, dim=-1)
     _, pred_ids = torch.max(preds, dim=1)
     _pred_ids += list(pred_ids.cpu().numpy())
