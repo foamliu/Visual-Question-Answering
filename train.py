@@ -5,7 +5,7 @@ from torch.autograd import Variable
 from torch.utils.data.dataloader import DataLoader
 
 from config import device, hidden_size, print_freq
-from data_gen import AiChallengerDataset, pad_collate
+from data_gen import MsCocoVqaDataset, pad_collate
 from models import DMNPlus
 from utils import parse_args, get_logger, AverageMeter, save_checkpoint, get_loss
 
@@ -78,7 +78,7 @@ def train_net(args):
     checkpoint = args.checkpoint
     logger = get_logger()
 
-    dset = AiChallengerDataset()
+    dset = MsCocoVqaDataset()
     vocab_size = len(dset.QA.VOCAB)
 
     # Initialize / load checkpoint

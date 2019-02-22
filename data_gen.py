@@ -31,7 +31,7 @@ def pad_collate(batch):
     return default_collate(batch)
 
 
-class AiChallengerDataset(Dataset):
+class MsCocoVqaDataset(Dataset):
     def __init__(self, mode='train'):
         self.mode = mode
         self.QA = adict()
@@ -77,7 +77,7 @@ class AiChallengerDataset(Dataset):
 
 
 if __name__ == '__main__':
-    dset_train = AiChallengerDataset()
+    dset_train = MsCocoVqaDataset()
     train_loader = DataLoader(dset_train, batch_size=2, shuffle=True, collate_fn=pad_collate)
     for batch_idx, data in enumerate(train_loader):
         images, questions, answers = data
