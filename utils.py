@@ -1,8 +1,10 @@
 import argparse
 import logging
 import os
-from config import device
+
 import torch
+
+from config import device
 
 
 def parse_args():
