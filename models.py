@@ -141,12 +141,14 @@ class QuestionModule(nn.Module):
 
 class InputModule(nn.Module):
     def __init__(self, hidden_size):
+        self.hidden_size = hidden_size
         super(InputModule, self).__init__()
         resnet = torchvision.models.resnet18(pretrained=True)
         # Remove linear and pool layers (since we're not doing classification)
         modules = list(resnet.children())[:-2]
         self.cnn = nn.Sequential(*modules)
-        self.hidden_size = hidden_size
+        self.linear = nn.Linear(hidden_size, hidden_size)
+        init.xavier_normal_(self.linear.state_dict()['weight'])
         self.gru = nn.GRU(hidden_size, hidden_size, bidirectional=True, batch_first=True)
         for name, param in self.gru.state_dict().items():
             if 'weight' in name: init.xavier_normal_(param)
@@ -159,8 +161,18 @@ class InputModule(nn.Module):
         '''
         x = self.cnn(images)
         batch_num, channel_num, row_num, column_num = x.size()  # (-1, 512, 14, 14)
-        x = x.view(batch_num, channel_num, row_num * column_num)  # (-1, 512, 196)
-        x = x.permute(0, 2, 1)  # (-1, 196, 512)
+        image_embedding = Variable(torch.zeros([batch_num, 196, 512], dtype=torch.float).cuda())
+        for i in range(14):
+            for jj in range(14):
+                if i % 2 == 0:
+                    j = jj
+                else:
+                    j = 14 - jj
+            t = i * 14 + j
+            image_embedding[:, t, :] = torch.tanh(self.linear(x[:, :, i, j]))
+        # x = x.view(batch_num, channel_num, row_num * column_num)  # (-1, 512, 196)
+        # x = x.permute(0, 2, 1)  # (-1, 196, 512)
+        x = image_embedding
         x = self.dropout(x)
 
         h0 = Variable(torch.zeros(2, batch_num, self.hidden_size)).cuda()
