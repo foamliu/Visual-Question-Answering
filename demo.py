@@ -57,8 +57,10 @@ if __name__ == '__main__':
 
     data = pad_collate(batch)
     _imgs, _questions, _targets = data
-    _imgs = _imgs.float()
-    _mask = get_mask(_targets)
+    _imgs = _imgs.float().cuda()
+    _questions = _questions.long().cuda()
+    _targets = _targets.long().cuda()
+    _mask = get_mask(_targets).cuda()
     outputs = model.forward(_imgs, _questions, _targets, _mask)
     preds = F.softmax(outputs, dim=-1)
     print('preds.size(): ' + str(preds.size()))
