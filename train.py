@@ -33,7 +33,7 @@ def train(dset, model, optim, epoch, logger):
         _ = torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
 
         # Keep track of metrics
-        losses.update(loss.mean().item())
+        losses.update(loss.item())
         accs.update(acc)
 
         if i % print_freq == 0:
@@ -68,7 +68,7 @@ def valid(dset, model, epoch, logger):
         loss, acc = get_loss(model, images, questions, answers, mask)
 
         # Keep track of metrics
-        losses.update(loss.mean().item())
+        losses.update(loss.item())
         accs.update(acc)
 
     logger.info('[Epoch {}] [Validate] Accuracy : {:.4f}'.format(epoch, accs.avg))
@@ -90,7 +90,7 @@ def train_net(args):
         start_epoch = 0
         epochs_since_improvement = 0
         model = DMNPlus(hidden_size, vocab_size, num_hop=3, qa=dset.QA)
-        model = nn.DataParallel(model)
+        # model = nn.DataParallel(model)
         optim = torch.optim.Adam(model.parameters())
 
     else:
