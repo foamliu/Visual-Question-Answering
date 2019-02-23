@@ -8,7 +8,7 @@ import torchvision
 from torch.autograd import Variable
 from torchsummary import summary
 
-from config import hidden_size, teacher_forcing_ratio, SOS_token
+from config import hidden_size, teacher_forcing_ratio, SOS_token, device, im_size
 from utils import maskNLLLoss
 
 
@@ -142,9 +142,9 @@ class QuestionModule(nn.Module):
 class InputModule(nn.Module):
     def __init__(self, hidden_size):
         super(InputModule, self).__init__()
-        vgg19 = torchvision.models.vgg19(pretrained=False)
+        resnet = torchvision.models.resnet18(pretrained=True)
         # Remove linear and pool layers (since we're not doing classification)
-        modules = list(vgg19.children())[:-1]
+        modules = list(resnet.children())[:-2]
         self.cnn = nn.Sequential(*modules)
         self.hidden_size = hidden_size
         self.gru = nn.GRU(hidden_size, hidden_size, bidirectional=True, batch_first=True)
@@ -304,7 +304,7 @@ class DMNPlus(nn.Module):
 if __name__ == '__main__':
     vocab_size = 15270
     # model = DMNPlus(hidden_size, vocab_size, num_hop=3)
-    # model = InputModule(hidden_size).to(device)
-    model = AnswerModule(vocab_size, hidden_size).cuda()
+    model = InputModule(hidden_size).to(device)
+    # model = AnswerModule(vocab_size, hidden_size).cuda()
     model = model.cuda()
-    summary(model, input_size=[(hidden_size,), (hidden_size,), (vocab_size,)])
+    summary(model, input_size=[(3, im_size, im_size)])

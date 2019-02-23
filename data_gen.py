@@ -5,6 +5,7 @@ import numpy as np
 from torch.utils.data.dataloader import DataLoader
 from torch.utils.data.dataloader import default_collate
 from torch.utils.data.dataset import Dataset
+from torchvision import transforms
 
 from config import im_size, pickle_file
 
@@ -31,6 +32,21 @@ def pad_collate(batch):
     return default_collate(batch)
 
 
+# Data augmentation and normalization for training
+# Just normalization for validation
+data_transforms = {
+    'train': transforms.Compose([
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ]),
+    'val': transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ]),
+}
+
+
 class MsCocoVqaDataset(Dataset):
     def __init__(self, mode='train'):
         self.mode = mode
@@ -42,6 +58,9 @@ class MsCocoVqaDataset(Dataset):
         self.QA.IVOCAB = data['IVOCAB']
         self.train = data['train']
         self.val = data['val']
+        
+        if mode == 'train':
+            self.transformer = data_transforms['train']
 
     def set_mode(self, mode):
         self.mode = mode
@@ -65,10 +84,9 @@ class MsCocoVqaDataset(Dataset):
         image_id = '{:08d}'.format(image_id)
         filename = prefix + image_id + '.jpg'
         img = cv.imread(filename)
-        img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
         img = cv.resize(img, (im_size, im_size))
-        img = img.transpose(2, 0, 1)
-        img = (img - 127.5) / 128
+        img = transforms.ToPILImage()(img)
+        img = self.transformer(img)
 
         question = questions[index]
         answer = answers[index]
