@@ -4,7 +4,7 @@ from torch import nn
 from torch.autograd import Variable
 from torch.utils.data.dataloader import DataLoader
 
-from config import hidden_size, print_freq
+from config import hidden_size, print_freq, clip
 from data_gen import MsCocoVqaDataset, pad_collate
 from models import DMNPlus
 from utils import parse_args, get_logger, AverageMeter, save_checkpoint, get_loss, get_mask
@@ -29,9 +29,11 @@ def train(dset, model, optim, epoch, logger):
 
         loss, acc = get_loss(model, images, questions, answers, mask)
         loss.sum().backward()
+        # Clip gradients: gradients are modified in place
+        _ = torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
 
         # Keep track of metrics
-        losses.update(loss.sum().item())
+        losses.update(loss.mean().item())
         accs.update(acc)
 
         if i % print_freq == 0:
@@ -66,7 +68,7 @@ def valid(dset, model, epoch, logger):
         loss, acc = get_loss(model, images, questions, answers, mask)
 
         # Keep track of metrics
-        losses.update(loss.sum().item())
+        losses.update(loss.mean().item())
         accs.update(acc)
 
     logger.info('[Epoch {}] [Validate] Accuracy : {:.4f}'.format(epoch, accs.avg))

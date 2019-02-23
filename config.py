@@ -10,6 +10,8 @@ hidden_size = 512
 print_freq = 100
 batch_size = 32
 teacher_forcing_ratio = 0.5
+clip = 50.0
+
 PAD_token = 0
 EOS_token = 1
 SOS_token = 2

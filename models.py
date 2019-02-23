@@ -206,7 +206,7 @@ class DMNPlus(nn.Module):
         self.qa = qa
         self.word_embedding = nn.Embedding(vocab_size, hidden_size, padding_idx=0, sparse=True)
         init.uniform_(self.word_embedding.state_dict()['weight'], a=-(3 ** 0.5), b=3 ** 0.5)
-        self.criterion = nn.CrossEntropyLoss(reduction='sum')
+        self.criterion = nn.CrossEntropyLoss()
 
         self.input_module = InputModule(hidden_size)
         self.question_module = QuestionModule(hidden_size)
