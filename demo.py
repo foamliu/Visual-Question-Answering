@@ -7,7 +7,7 @@ import torch.nn.functional as F
 
 from config import pickle_file, im_size
 from data_gen import pad_collate
-from utils import ensure_folder
+from utils import ensure_folder, get_mask
 
 if __name__ == '__main__':
     checkpoint = 'BEST_checkpoint.tar'
@@ -58,9 +58,8 @@ if __name__ == '__main__':
     data = pad_collate(batch)
     _imgs, _questions, _targets = data
     _imgs = _imgs.float()
-    _max_target_len = _targets.size()[1]
-    print('_max_target_len: ' + str(_max_target_len))
-    outputs = model.forward(_imgs, _questions, _max_target_len)
+    _mask = get_mask(_targets.size())
+    outputs = model.forward(_imgs, _questions, _targets, _mask)
     preds = F.softmax(outputs, dim=-1)
     print('preds.size(): ' + str(preds.size()))
     _, pred_ids = torch.max(preds, dim=-1)
