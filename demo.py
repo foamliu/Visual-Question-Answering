@@ -7,7 +7,7 @@ import torch.nn.functional as F
 
 from config import pickle_file, im_size
 from data_gen import pad_collate
-from utils import ensure_folder
+from utils import ensure_folder, get_mask
 
 if __name__ == '__main__':
     checkpoint = 'BEST_checkpoint.tar'
@@ -57,16 +57,14 @@ if __name__ == '__main__':
 
     data = pad_collate(batch)
     _imgs, _questions, _targets = data
-    _imgs = _imgs.float()
-    _max_target_len = _targets.size()[1]
-    print('_max_target_len: ' + str(_max_target_len))
-    outputs = model.forward(_imgs, _questions, _max_target_len)
-    preds = F.softmax(outputs, dim=-1)
-    print('preds.size(): ' + str(preds.size()))
-    _, pred_ids = torch.max(preds, dim=-1)
-    print('pred_ids.size(): ' + str(pred_ids.size()))
-    _pred_ids = list(pred_ids.cpu().numpy())
-    print('len(_pred_ids): ' + str(_pred_ids))
+    _imgs = _imgs.float().cuda()
+    _questions = _questions.long().cuda()
+    _targets = _targets.long().cuda()
+    _mask = get_mask(_targets).cuda()
+    outputs, loss = model.forward(_imgs, _questions, _targets, _mask)
+    print('pred_ids.size(): ' + str(outputs.size()))
+    outputs = list(outputs.cpu().numpy())
+    print('len(_pred_ids): ' + str(outputs))
 
     for i in range(10):
         question = questions[i]
@@ -74,7 +72,7 @@ if __name__ == '__main__':
         target = targets[i]
         target = ''.join([IVOCAB[id] for id in target]).replace('<EOS>', '')
 
-        pred = _pred_ids[i]
+        pred = outputs[i]
         pred = ''.join([IVOCAB[id] for id in pred]).replace('<EOS>', '')
         pred = pred.replace('<EOS>', '').replace('<PAD>', '')
 

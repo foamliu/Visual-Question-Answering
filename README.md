@@ -50,6 +50,18 @@ Download pretrained [model](https://github.com/foamliu/Reading-Comprehension/rel
 $ python demo.py
 ```
 
+图片|问答|图片|问答|
+|---|---|---|---|
+|![image](https://github.com/foamliu/Visual-Question-Answering/raw/master/images/0_img.png)|提问：这是花吗？<br>标准答案：这是花。<br>电脑抢答：是的。|![image](https://github.com/foamliu/Visual-Question-Answering/raw/master/images/1_img.png)|提问：这个人在干什么？<br>标准答案：在吃饭。<br>电脑抢答：这个人在玩滑板|
+|![image](https://github.com/foamliu/Visual-Question-Answering/raw/master/images/2_img.png)|提问：他是爱玩滑板吗？<br>标准答案：是的。<br>电脑抢答：是的。|![image](https://github.com/foamliu/Visual-Question-Answering/raw/master/images/3_img.png)|提问：这是什么交通工具？<br>标准答案：公共汽车。<br>电脑抢答：火车。|
+|![image](https://github.com/foamliu/Visual-Question-Answering/raw/master/images/4_img.png)|提问：微波炉是白色的吗？<br>标准答案：是的。<br>电脑抢答：是的。|![image](https://github.com/foamliu/Visual-Question-Answering/raw/master/images/5_img.png)|提问：这是什么动物？<br>标准答案：这是绵羊。<br>电脑抢答：这是。|
+|![image](https://github.com/foamliu/Visual-Question-Answering/raw/master/images/6_img.png)|提问：他们的制服是什么颜色的？<br>标准答案：黑色的。<br>电脑抢答：这是是白色的|![image](https://github.com/foamliu/Visual-Question-Answering/raw/master/images/7_img.png)|提问：这是哪里？<br>标准答案：这是英国。<br>电脑抢答：这是。|
+|![image](https://github.com/foamliu/Visual-Question-Answering/raw/master/images/8_img.png)|提问：这是什么食物？<br>标准答案：披萨。<br>电脑抢答：这是。|![image](https://github.com/foamliu/Visual-Question-Answering/raw/master/images/9_img.png)|提问：图中有几个人物？<br>标准答案：1个。<br>电脑抢答：1个。|
+
+
+
+
+
 
 ## Reference
 1. [Dynamic Memory Network for Visual and Textual Question Answering](https://arxiv.org/abs/1603.01417).
