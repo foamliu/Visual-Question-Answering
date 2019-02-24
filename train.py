@@ -92,7 +92,10 @@ def train_net(args):
         epochs_since_improvement = 0
         model = DMNPlus(hidden_size, vocab_size, num_hop=3, qa=dset.QA)
         model = nn.DataParallel(model)
-        optim = torch.optim.Adam(model.parameters())
+        if args.optimizer == 'sgd':
+            optim = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=args.mom, weight_decay=args.weight_decay)
+        else:
+            optim = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
     else:
         checkpoint = torch.load(checkpoint)
@@ -104,7 +107,7 @@ def train_net(args):
     model.cuda()
 
     best_acc = 0
-    scheduler = StepLR(optim, step_size=5, gamma=0.1)
+    scheduler = StepLR(optim, step_size=args.lr_step, gamma=0.1)
 
     for epoch in range(start_epoch, args.end_epoch):
         scheduler.step()
