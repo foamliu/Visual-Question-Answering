@@ -91,7 +91,7 @@ def train_net(args):
         start_epoch = 0
         epochs_since_improvement = 0
         model = DMNPlus(hidden_size, vocab_size, num_hop=3, qa=dset.QA)
-        model = nn.DataParallel(model)
+        # model = nn.DataParallel(model)
         if args.optimizer == 'sgd':
             optim = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=args.mom, weight_decay=args.weight_decay)
         else:

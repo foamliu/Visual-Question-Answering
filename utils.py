@@ -8,7 +8,7 @@ import torch
 def parse_args():
     parser = argparse.ArgumentParser(description='train DMN+')
     # general
-    parser.add_argument('--batch-size', type=int, default=20, help='batch size')
+    parser.add_argument('--batch-size', type=int, default=64, help='batch size')
     parser.add_argument('--end-epoch', type=int, default=256, help='training epoch size.')
     parser.add_argument('--lr', type=float, default=0.001, help='start learning rate')
     parser.add_argument('--lr-step', type=int, default=5, help='period of learning rate decay')
