@@ -8,7 +8,7 @@ hidden_size = 512
 
 # Configure training/optimization
 print_freq = 100
-batch_size = 128
+batch_size = 64
 teacher_forcing_ratio = 0.5
 clip = 50.0
 
