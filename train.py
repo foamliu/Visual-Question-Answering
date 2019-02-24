@@ -1,7 +1,7 @@
 import numpy as np
 import torch
-from torch import nn
 from torch.autograd import Variable
+from torch.optim.lr_scheduler import StepLR
 from torch.utils.data.dataloader import DataLoader
 
 from config import hidden_size, print_freq, clip
@@ -103,8 +103,11 @@ def train_net(args):
     model.cuda()
 
     best_acc = 0
+    scheduler = StepLR(optim, step_size=5, gamma=0.1)
 
     for epoch in range(start_epoch, args.end_epoch):
+        scheduler.step()
+
         train(dset, model, optim, epoch, logger)
 
         valid_acc = valid(dset, model, epoch, logger)
