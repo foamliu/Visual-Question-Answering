@@ -34,7 +34,7 @@ def train(dset, model, optim, epoch, logger):
         _ = torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
 
         # Keep track of metrics
-        losses.update(loss.item())
+        losses.update(loss.sum().item())
         accs.update(acc)
 
         if i % print_freq == 0:
@@ -69,7 +69,7 @@ def valid(dset, model, epoch, logger):
         loss, acc = get_loss(model, images, questions, answers, mask)
 
         # Keep track of metrics
-        losses.update(loss.item())
+        losses.update(loss.sum().item())
         accs.update(acc)
 
     logger.info('[Epoch {}] [Validate] Accuracy : {:.4f}'.format(epoch, accs.avg))
