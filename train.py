@@ -107,7 +107,7 @@ def train_net(args):
     model.cuda()
 
     best_acc = 0
-    scheduler = StepLR(optim, step_size=args.lr_step, gamma=0.1)
+    scheduler = StepLR(optim, step_size=args.lr_step, gamma=0.5)
 
     for epoch in range(start_epoch, args.end_epoch):
         scheduler.step()
